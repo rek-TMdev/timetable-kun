@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+venv_*/
+
+# Local settings and secrets
+.env
+*.local.*
+config.json
+user_settings.json
+*.tm.json
+
+# Build outputs
+build/
+dist/
+_internal/
+*.exe
+*.dll
+*.pyd
+*.msi
+*.zip
+
+# Real or exported school data
+Data/
+*.xls
+*.xlsx
+*.csv
+*履修*
+*登録用紙*
+*コード表*
+*名簿*
+*実データ*
+*学校別設定*
+*個人情報*
+
+# Generated documentation
+site/
+docs/generated/
+
+# IDE / OS
+.vs/
+.idea/
+.vscode/
+Thumbs.db
+Desktop.ini

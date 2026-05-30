@@ -1,0 +1,5 @@
+PySide6
+darkdetect
+openpyxl
+pykakasi
+deep-translator

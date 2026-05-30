@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>時間割くん HTMLマニュアル概要</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Yu Gothic", "Meiryo", sans-serif;
+      background: #f6f8fb;
+      color: #1f2937;
+    }
+    body {
+      margin: 0;
+      line-height: 1.8;
+    }
+    main {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 40px 24px 64px;
+    }
+    h1, h2 {
+      line-height: 1.35;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+    h2 {
+      border-bottom: 2px solid #2563eb;
+      padding-bottom: 6px;
+      margin-top: 36px;
+    }
+    .note {
+      background: #fff;
+      border-left: 4px solid #2563eb;
+      padding: 14px 18px;
+      margin: 20px 0;
+    }
+    ul {
+      padding-left: 1.4rem;
+    }
+    code {
+      background: #e5e7eb;
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>時間割くん HTMLマニュアル概要</h1>
+    <p>このページは GitHub 公開用の概要版です。実運用版の生成済み HTML マニュアルには学校固有の説明や連絡先が含まれるため、このリポジトリには同梱していません。</p>
+
+    <div class="note">
+      <strong>公開方針:</strong> 実在校名、実データ、個人情報、運用先固有の設定は含めません。
+    </div>
+
+    <h2>本体マニュアル</h2>
+    <ul>
+      <li>履修条件の選択</li>
+      <li>時間割候補の生成</li>
+      <li>手動固定科目の指定</li>
+      <li>競合・重複・前提科目の確認</li>
+      <li>Excel への出力</li>
+    </ul>
+
+    <h2>ドライバマニュアル</h2>
+    <ul>
+      <li>学校別設定ファイルの作成</li>
+      <li>教科マスタ、別名、前提科目、同時履修不可条件の編集</li>
+      <li>3-way マージによる設定競合の解決</li>
+      <li>配布用設定の更新</li>
+    </ul>
+
+    <h2>チェッカーマニュアル</h2>
+    <ul>
+      <li>設定ファイルの整合性確認</li>
+      <li>保存済み時間割の確認補助</li>
+      <li>移行・配布前のチェック</li>
+    </ul>
+
+    <h2>インストールと更新</h2>
+    <ul>
+      <li><code>installer/</code> の PyInstaller 定義で実行ファイルを作成</li>
+      <li>Inno Setup 定義で Windows インストーラーを作成</li>
+      <li>実運用環境では配布先、更新手順、署名を別途設定</li>
+    </ul>
+  </main>
+</body>
+</html>

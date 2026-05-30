@@ -1,0 +1,73 @@
+{
+  "GENERAL_SETTINGS": {
+    "SCHOOL_NAME": "サンプル高校",
+    "APP_FONT_SIZE": 11,
+    "EDITOR_FONT_SIZE": 10
+  },
+  "MASTER_SUBJECTS": [
+    "国語演習",
+    "数学探究",
+    "英語表現",
+    "情報演習",
+    "美術基礎",
+    "音楽基礎"
+  ],
+  "SUBJECT_ALIASES": {
+    "情報演習": [
+      "情報",
+      "ICT"
+    ]
+  },
+  "PREREQUISITE_SUBJECTS": {
+    "数学探究": [
+      "国語演習"
+    ]
+  },
+  "NO_TOGETHER_SUBJECTS": [
+    [
+      "美術基礎",
+      "音楽基礎"
+    ]
+  ],
+  "YEARS_MESSAGE": [
+    "学年を選択してください",
+    "系列を選択してください"
+  ],
+  "YEARS_HIERARCHY": {
+    "1年": {
+      "共通": [
+        "国語演習",
+        "数学探究",
+        "英語表現",
+        "情報演習"
+      ]
+    },
+    "2年": {
+      "文理共通": [
+        "国語演習",
+        "英語表現",
+        "美術基礎",
+        "音楽基礎"
+      ]
+    }
+  },
+  "SUBJECT_COMBINATION_COUNT": 20,
+  "MORE_SUBJECT_COMBINATION": 10,
+  "MIN_SUBJECT_COUNT": 2,
+  "MAX_SUBJECT_COUNT": 10,
+  "MIN_SUBJECT_COUNT_UNITS": 9,
+  "MAX_SUBJECT_COUNT_UNITS": 30,
+  "ACTIVE_MIN_SUBJECT": true,
+  "ACTIVE_MAX_SUBJECT": false,
+  "ACTIVE_FILTER_SUBJECT": true,
+  "ACTIVE_FILTER_SUBJECT_AMOUNT": false,
+  "ACTIVE_MIN_SUBJECT_UNITS": true,
+  "ACTIVE_MAX_SUBJECT_UNITS": false,
+  "ACTIVE_FILTER_SUBJECT_UNITS": false,
+  "INCLUDE_FIXED": false,
+  "TIMETABLE_ORDER": true,
+  "TUTORIAL": true,
+  "RUN_TUTORIAL_ON_STARTUP": true,
+  "MAX_MEMORY_LIMIT": 1000,
+  "LAST_UPDATE_DAY": "2026-05-30"
+}
