@@ -1,8 +1,8 @@
 # Third Party Notices
 
 This repository contains source code for portfolio review. Third-party packages
-and assets keep their original licenses and are not covered by this repository's
-all-rights-reserved project license.
+and assets keep their original licenses and are not covered by the project
+license in `LICENSE`.
 
 ## Python dependencies
 
