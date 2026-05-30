@@ -31,7 +31,7 @@ class TutorialManager(QObject):
         self.msg_box = None
         self.enable_check_timer = None
         self.last_action_args = None
-        self.is_advancing = False # State-lock flag
+        self.is_advancing = False # 進行状態のロックフラグ
 
     def set_steps(self, steps):
         self.steps = steps
@@ -56,12 +56,12 @@ class TutorialManager(QObject):
 
     def show_tutorial_message(self, step):
         if not step.message:
-            # This is a sync step, don't show a message.
+            # 同期用ステップのためメッセージは表示しない。
             target_for_action = self.get_target_widget(step)
             if target_for_action:
                 self.connect_action(target_for_action, step)
             else:
-                self.next_step() # Failsafe
+                self.next_step() # フェイルセーフ
             QTimer.singleShot(0, lambda: setattr(self, 'is_advancing', False))
             return
         
@@ -87,7 +87,7 @@ class TutorialManager(QObject):
             if os.path.exists(icon_path):
                 self.msg_box.setWindowIcon(QIcon(icon_path))
 
-        # Dynamic Style Calculation
+        # テーマに応じたスタイル計算
         is_dark = darkdetect.isDark()
         if is_dark:
             current_style = "QMessageBox { border: 2px solid white; border-radius: 5px; background-color: #333; color: white; }"

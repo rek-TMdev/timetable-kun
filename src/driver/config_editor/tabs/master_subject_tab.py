@@ -129,7 +129,7 @@ class MasterSubjectTab(BaseTab):
         config_dict["MASTER_SUBJECTS"] = sorted(list(set(subjects)))
     
     # =========================================================================
-    # Public Methods
+    # 公開メソッド
     # =========================================================================
     
     def add_subject(self):
@@ -246,7 +246,7 @@ class MasterSubjectTab(BaseTab):
         ]
     
     # =========================================================================
-    # Private Methods
+    # 内部メソッド
     # =========================================================================
     
     def _japanese_sort_key(self, text: str) -> str:

@@ -179,7 +179,7 @@ class GeneralSettingsTab(BaseTab):
         self._collect_theme_settings(config_dict)
     
     # =========================================================================
-    # Settings Population
+    # 設定値の反映
     # =========================================================================
     
     def _populate_general_settings(self):
@@ -232,7 +232,7 @@ class GeneralSettingsTab(BaseTab):
                 dark_btn.setProperty("color_val", dark_color)
     
     # =========================================================================
-    # Settings Collection
+    # 設定値の収集
     # =========================================================================
     
     def _collect_general_settings(self, config_dict: Dict[str, Any]):
@@ -259,7 +259,7 @@ class GeneralSettingsTab(BaseTab):
                 config_dict["THEME_COLORS"][key] = color
     
     # =========================================================================
-    # Event Handlers
+    # イベントハンドラ
     # =========================================================================
     
     def _on_setting_changed(self):

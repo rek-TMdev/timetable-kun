@@ -174,7 +174,7 @@ class SubjectDetailsTab(BaseTab):
         pass  # MainWindowのget_current_ui_configで処理
     
     # =========================================================================
-    # Year Selection
+    # 年次選択
     # =========================================================================
     
     def _initialize_selectors(self):
@@ -247,7 +247,7 @@ class SubjectDetailsTab(BaseTab):
             self._update_subject_lists()
     
     # =========================================================================
-    # Subject Lists
+    # 教科リスト
     # =========================================================================
     
     def _update_subject_lists(self):
@@ -301,7 +301,7 @@ class SubjectDetailsTab(BaseTab):
         self.mark_modified()
     
     # =========================================================================
-    # Slot Groups
+    # 時間枠グループ
     # =========================================================================
     
     def _add_slot_group(self):

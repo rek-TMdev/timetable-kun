@@ -1,4 +1,4 @@
-# config_editor.widgets package
+# config_editor.widgetsパッケージ
 """
 ウィジェットパッケージ
 

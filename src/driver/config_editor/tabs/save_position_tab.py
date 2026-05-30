@@ -115,7 +115,7 @@ class SavePositionTab(BaseTab):
         self._save_current_to_config(config_dict)
     
     # =========================================================================
-    # Year Selection
+    # 年次選択
     # =========================================================================
     
     def _initialize_selectors(self):
@@ -284,7 +284,7 @@ class SavePositionTab(BaseTab):
             del config_dict[key]
     
     # =========================================================================
-    # Public Methods
+    # 公開メソッド
     # =========================================================================
     
     def add_row(self):

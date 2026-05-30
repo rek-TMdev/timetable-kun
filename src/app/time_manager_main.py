@@ -56,9 +56,9 @@ class CreateToolTip:
         self.widget.setToolTip(self.text)
 
 def is_windows_light_theme():
-    """Checks if the user is using a light theme on Windows."""
+    """Windowsでライトテーマが使われているか確認する。"""
     if sys.platform != "win32":
-        return True # Default to light theme on non-Windows platforms
+        return True # Windows以外ではライトテーマを既定にする
     try:
         import winreg
         key_path = r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
@@ -66,7 +66,7 @@ def is_windows_light_theme():
         value, _ = winreg.QueryValueEx(key, "AppsUseLightTheme")
         return value == 1
     except Exception:
-        # In case of any error, default to a light theme.
+        # エラー時はライトテーマに戻す。
         return True
 
 # ToolTipFilter クラスはそのまま保持
@@ -97,7 +97,7 @@ class CustomStepSpinBox(QSpinBox):
 
 
 def set_button_styles(app, is_dark=None):
-    """Applies a theme-aware stylesheet for QPushButton."""
+    """テーマに応じたQPushButton用スタイルを適用する。"""
     if is_dark is None:
         try:
             is_dark = darkdetect.theme() == "Dark"
@@ -186,7 +186,7 @@ class DepartmentSelectionDialog(QDialog):
         label = QLabel("選択してください:")
         main_layout.addWidget(label)
 
-        # Use a group box for radio buttons
+        # ラジオボタンをグループ化する
         self.radio_group_box = QGroupBox()
         radio_layout = QVBoxLayout()
         self.radio_button_group = QButtonGroup(self)
@@ -300,7 +300,7 @@ class SubjectSelectionDialog(QDialog):
         self.subject_list_widget.setSelectionMode(QListWidget.SingleSelection)
         
         # available_subject_groups は {subject_name: [group1_slots, group2_slots, ...]} の形式を想定
-        self.subject_group_map = {} # {displayed_text: (subject_name, slot_group)}
+        self.subject_group_map = {} # 表示文字列: (教科名, 時間枠グループ)
 
         if available_subject_groups:
             # clicked_slot が属するグループを優先的に表示するため、フィルタリング
@@ -364,7 +364,7 @@ class TimetableSlotButton(QPushButton):
             elif event.button() == Qt.RightButton:
                 self.app.toggle_user_fixation(self.text(), self.year_label)
         
-        # Ensure the base class event is called to emit clicked()
+        # clicked()を発火させるため基底クラスのイベントも呼ぶ
         super().mousePressEvent(event)
 
 class SaveCompleteDialog(QDialog):
@@ -398,10 +398,10 @@ class ConfigSelectionDialog(QDialog):
 
         icon_base_name = "時間割くんアイコン.ico"
         icon_path_obj = parent.base_path / icon_base_name
-        icon_path = str(icon_path_obj) # Convert to string for QIcon
+        icon_path = str(icon_path_obj) # QIcon用に文字列へ変換
 
-        if icon_path_obj.exists(): # Use pathlib's exists()
-            icon = QIcon(icon_path) # QIcon expects a string path
+        if icon_path_obj.exists(): # pathlibのexists()で存在確認
+            icon = QIcon(icon_path) # QIconには文字列パスを渡す
             if not icon.isNull():
                 self.setWindowIcon(icon)
 
@@ -496,10 +496,10 @@ class Application(QMainWindow):
 
         self.resize(1000, 800)
 
-        # Merge user_settings into runtime config defaults where applicable
+        # user_settingsを実行時configの既定値に反映
         try:
             if isinstance(self.user_settings, dict):
-                # map top-level simple keys into config for easier usage
+                # トップレベルの単純キーはconfigにも写して扱いやすくする
                 if 'TIMETABLE_ORDER' in self.user_settings:
                     self.config['TIMETABLE_ORDER'] = self.user_settings['TIMETABLE_ORDER']
                 if 'RUN_TUTORIAL_ON_STARTUP' in self.user_settings:
@@ -508,26 +508,26 @@ class Application(QMainWindow):
                     self.config['APP_FONT_SIZE'] = self.user_settings['APP_FONT_SIZE']
                 if 'APP_THEME' in self.user_settings:
                     self.config['APP_THEME'] = self.user_settings['APP_THEME']
-                # years subject units entries - 設定ファイルの値を優先し、user_settingsを更新する
+                # 年次別単位数は設定ファイルの値を優先し、user_settingsへ反映する
                 for k, v in list(self.config.items()):
                     if k.startswith('YEARS_SUBJECTS_UNITS_'):
                         self.user_settings[k] = v  # 設定ファイルの値でuser_settingsを更新
         except Exception as e:
             print(f"Failed applying user settings overrides: {e}")
 
-        # Restore icon loading
+        # アイコンを読み込む
         icon_path = os.path.join(self.base_path, self.icon_base_name)
         if os.path.exists(icon_path):
             self.setWindowIcon(QIcon(str(icon_path)))
         else:
-            # Fallback to the generic name if theme-specific icon is not found
+            # テーマ別アイコンがない場合は通常アイコンを使用する
             fallback_icon_path = os.path.join(self.base_path, self.icon_base_name)
             if os.path.exists(fallback_icon_path):
                 self.setWindowIcon(QIcon(str(fallback_icon_path)))
             else:
                 print(f"アイコンファイルが見つかりません: {icon_path} または {fallback_icon_path}")
 
-        # Set window title using the _get_setting helper for backward compatibility
+        # 後方互換性のため_get_setting経由でウィンドウタイトルを設定
         school_name = self._get_setting("SCHOOL_NAME")
         if school_name:
             self.setWindowTitle(f"時間割くん by I.R - [{school_name}]")
@@ -538,7 +538,7 @@ class Application(QMainWindow):
         self.theme = self.theme_manager.get_all_theme_colors()
 
         # OSのテーマ設定を反映 (初期化)
-        # Note: ThemeManager logic handles the preference (User > System)
+        # ThemeManager側で優先順（ユーザー設定 > OS設定）を処理する
         is_dark = self.theme_manager.is_dark_theme()
         set_button_styles(QApplication.instance(), is_dark=is_dark)
 
@@ -566,16 +566,16 @@ class Application(QMainWindow):
         self.tab_list = QListWidget()
         left_panel_layout.addWidget(self.tab_list)
 
-        # Define the single color to use based on the theme.
+        # テーマに応じた単色アイコン色を決定する。
         target_color = "#FFFFFF" if self.is_dark_theme() else "#1F1F1F"
 
         # チュートリアル開始ボタン
         icon_path_tutorial = os.path.join(self.base_path, "svgs", "question.svg")
         tutorial_icon = self._create_icon_from_svg_data(icon_path_tutorial, target_color)
-        self.tutorial_button = QPushButton(tutorial_icon, "チュートリアル") # Set icon directly in constructor
-        # Set font size
+        self.tutorial_button = QPushButton(tutorial_icon, "チュートリアル") # コンストラクタでアイコンを直接設定
+        # フォントサイズを調整
         font = self.tutorial_button.font()
-        font.setPointSize(font.pointSize() - 2) # Reduce font size by 2 points
+        font.setPointSize(font.pointSize() - 2) # フォントサイズを2ポイント下げる
         self.tutorial_button.setFont(font)
 
         self.tutorial_button.clicked.connect(self.on_tutorial_button_clicked)
@@ -591,7 +591,7 @@ class Application(QMainWindow):
         load_dedicated_button = load_menu.addAction("専用ファイルを開く")
         load_dedicated_button.triggered.connect(self.load_dedicated_file)
         self.load_button.setMenu(load_menu)
-        # Set font size
+        # フォントサイズを調整
         font = self.load_button.font()
         font.setPointSize(font.pointSize() - 2)
         self.load_button.setFont(font)
@@ -606,8 +606,7 @@ class Application(QMainWindow):
         change_department.triggered.connect(lambda: self._change_department_clicked())
         change_school_action = change_memu.addAction("設定ファイルを変更")
         change_school_action.triggered.connect(lambda: self._change_school())
-        #change_school.triggered.connect()
-        # Set font size
+        # フォントサイズを調整
         font = self.change_button.font()
         font.setPointSize(font.pointSize() - 2)
         self.change_button.setFont(font)
@@ -625,23 +624,23 @@ class Application(QMainWindow):
         # --- 動的なタブ作成 ---
         self.selected_department_path_key = self.user_settings.get("years_hierarchy")
         if not isinstance(self.selected_department_path_key, str):
-            self.selected_department_path_key = None # In case the saved value is invalid
+            self.selected_department_path_key = None # 保存値が不正な場合に備える
         
-        # Treat None as no saved value; empty string means use config's hierarchy dict
+        # Noneは未保存扱い、空文字は設定ファイル内の階層を使う指定として扱う
         if self.selected_department_path_key is not None:
             selected_hierarchy_for_years = self._get_hierarchy_dict_from_path_key(self.selected_department_path_key)
         else:
-            # No saved hierarchy, perform selection
+            # 保存済み階層がない場合は選択を行う
             path_key, hierarchy_dict = self._perform_hierarchical_selection()
 
-            if path_key is None: # Root cancel
+            if path_key is None: # ルート選択でキャンセル
                 QMessageBox.information(self, "終了", "学科が選択されなかったため、アプリケーションを終了します。")
                 sys.exit()
             
             if path_key == "SUB_CANCEL":
                 selected_hierarchy_for_years = self.config.get("YEARS_HIERARCHY", {})
-                self.selected_department_path_key = "" # No specific path
-            else:  # User made a successful selection
+                self.selected_department_path_key = "" # 個別パス指定なし
+            else:  # ユーザーが選択を完了
                 self.selected_department_path_key = path_key
                 selected_hierarchy_for_years = hierarchy_dict
 
@@ -682,11 +681,11 @@ class Application(QMainWindow):
         # --- データ構造の初期化 ---
         self.year_data = {}
         for year in self.years:
-            # Helper to convert old dict format to new list format
+            # 旧dict形式を新しいlist形式へ変換する補助関数
             def _convert_to_list_format(data_dict):
                 if isinstance(data_dict, dict):
                     return [{"name": s, "data": d} for s, d in data_dict.items()]
-                return data_dict # Assume already list format
+                return data_dict # すでにlist形式とみなす
 
             self.year_data[year] = {
                 "table_layout": self.config.get(f"table_layout{year}", []),
@@ -864,11 +863,11 @@ class Application(QMainWindow):
         timetable_controls_layout = QHBoxLayout(self.timetable_bottom_specific_frame)
         timetable_controls_layout.setContentsMargins(0, 0, 0, 0)
         
-        # --- Mode Buttons ---
-        # Define the single color to use based on the theme.
+        # --- モードボタン ---
+        # テーマに応じた単色アイコン色を決定する。
         target_color = "#FFFFFF" if self.is_dark_theme() else "#1F1F1F"
 
-        # Define paths to the single base SVG files.
+        # 共通ベースSVGのパスを定義する。
         icon_path_add = os.path.join(self.base_path, "svgs", "plus.svg")
         icon_path_eraser = os.path.join(self.base_path, "svgs", "eraser.svg")
         icon_path_lock = os.path.join(self.base_path, "svgs", "lock.svg")
@@ -900,7 +899,7 @@ class Application(QMainWindow):
         self.lock_button.setCheckable(True)
         self.lock_button.setToolTip("教科を固定/枠を無効化")
         
-        # Map buttons to their mode string
+        # ボタンとモード文字列を対応づける
         self.mode_button_map = {
             self.add_subject_button: "＋",
             self.eraser_button: "🗑️",
@@ -914,7 +913,7 @@ class Application(QMainWindow):
         self.timetable_mode_group.addButton(self.lock_button)
 
         self.add_subject_button.setChecked(True)
-        self.current_timetable_mode = "＋" # Initial mode
+        self.current_timetable_mode = "＋" # 初期モード
 
         timetable_controls_layout.addStretch()
         timetable_controls_layout.addWidget(self.add_subject_button)
@@ -934,11 +933,11 @@ class Application(QMainWindow):
         self.clear_results_button = QPushButton("組み合わせ結果をクリア")
         self.clear_results_button.clicked.connect(self.clear_generated_results)
         self.clear_results_button.setVisible(False)
-        # Make the button retain its size in the layout even when hidden
+        # 非表示時もレイアウト上のサイズを維持する
         policy = self.clear_results_button.sizePolicy()
         policy.setRetainSizeWhenHidden(True)
         self.clear_results_button.setSizePolicy(policy)
-        bottom_layout.addWidget(self.clear_results_button) # Right-aligned Clear button
+        bottom_layout.addWidget(self.clear_results_button) # 右寄せのクリアボタン
 
         bottom_frame = QFrame()
         bottom_frame.setLayout(bottom_layout)
@@ -1083,8 +1082,8 @@ class Application(QMainWindow):
                 event.ignore()
                 return
 
-        # Proceed with existing cleanup if user accepts or no active combinations
-        # Close any open display windows
+        # ユーザーが承認した場合、または未保存候補がない場合は終了処理へ進む
+        # 開いている表示ウィンドウを閉じる
         if hasattr(self, 'display_windows'):
             for window in self.display_windows:
                 # ウィンドウ固有のデータをクリーンアップ
@@ -1097,7 +1096,7 @@ class Application(QMainWindow):
                 window.close()
             self.display_windows.clear()
 
-        # Close the settings window
+        # 設定ウィンドウを閉じる
         if hasattr(self, 'setting_window') and self.setting_window.isVisible():
             self.setting_window.close()
 
@@ -1108,7 +1107,7 @@ class Application(QMainWindow):
         # ガベージコレクション
         gc.collect()
 
-        # Proceed with closing the main window
+        # メインウィンドウの終了処理へ進む
         event.accept()
 
     def clear_generated_results(self):
@@ -1155,7 +1154,7 @@ class Application(QMainWindow):
         window.setWindowTitle(f"{year_label} 時間割候補")
         window.resize(1200, 800)
         
-        # Set the icon
+        # アイコンを設定
         icon_base_name = "時間割くんアイコン.ico"
         icon_path_obj = self.base_path / icon_base_name
         if icon_path_obj.exists():
@@ -1458,12 +1457,12 @@ class Application(QMainWindow):
             if part in current_node:
                 current_node = current_node[part]
             else:
-                # Path not found, return full hierarchy as fallback
+                # 指定パスが見つからない場合は階層全体をフォールバックとして返す
                 return self.config.get("YEARS_HIERARCHY", {})
 
-        # Reconstruct nested dict including the full path so callers that expect
-        # a nested hierarchy structure receive the same shape as interactive
-        # selection produces.
+        # 呼び出し側が想定する形に合わせるため、選択パス全体を含む階層dictを再構築する
+        # 対話的な選択結果と同じネスト構造にそろえる
+        # 選択処理が返す形に合わせる。
         res = current_node
         for key in reversed(parts):
             res = {key: res}
@@ -1501,7 +1500,7 @@ class Application(QMainWindow):
         for depth in range(max_depth):
             keys = list(current_hierarchy.keys())
             if not keys:
-                break  # Reached a leaf node in the hierarchy
+                break  # 階層の葉ノードに到達
 
             dialog_title = "選択してください"
             dialog = DepartmentSelectionDialog(self, keys, dialog_title)
@@ -1525,10 +1524,10 @@ class Application(QMainWindow):
                     QMessageBox.warning(self, "選択エラー", "無効な選択です。全ての学科を表示します。")
                     return "", self.config.get("YEARS_HIERARCHY", {})
             else:
-                # User cancelled
-                if depth == 0:  # If cancelled on the very first dialog
+                # ユーザーがキャンセル
+                if depth == 0:  # 最初のダイアログでキャンセルされた場合
                     return None, None
-                else:  # If cancelled on a subsequent dialog
+                else:  # 途中のダイアログでキャンセルされた場合
                     QMessageBox.information(self, "選択キャンセル", "選択がキャンセルされました。全ての学科を表示します。")
                     return "SUB_CANCEL", None
 
@@ -1536,9 +1535,9 @@ class Application(QMainWindow):
         if not selected_path:
             return "", full_hierarchy
 
-        # Reconstruct the selected hierarchy from the path
+        # 選択パスから階層を再構築する
         res = current_hierarchy
-        # This reconstruction seems to be for _get_all_leaf_years, so let's trust it for now.
+        # _get_all_leaf_yearsで扱える形へ再構築する
         for key in reversed(selected_path):
             res = {key: res}
 
@@ -1553,22 +1552,22 @@ class Application(QMainWindow):
 
         path_key, hierarchy_dict = self._perform_hierarchical_selection()
 
-        if path_key is None:  # User cancelled at the root dialog, do nothing
+        if path_key is None:  # ユーザーがキャンセル at the root dialog, do nothing
             QMessageBox.information(self, "選択キャンセル", "学科選択がキャンセルされました。現在の学科設定を維持します。")
             return
 
-        # A new selection was made or cancelled mid-way.
+        # 新しい選択が完了したか、途中でキャンセルされた。
         if path_key == "SUB_CANCEL":
-            # For now, we do nothing and keep the current settings.
+            # 途中キャンセル時は現在の設定を維持する。
             return
         
         self.setUpdatesEnabled(False)
         try:
-            # Success
+            # 選択完了
             self.selected_department_path_key = path_key
             self._save_user_settings()
 
-            # Clear existing tabs and widgets
+            # 既存のタブとウィジェットをクリア
             while self.stacked_widget.count() > 0:
                 widget = self.stacked_widget.widget(0)
                 self.stacked_widget.removeWidget(widget)
@@ -1576,10 +1575,10 @@ class Application(QMainWindow):
             self.tab_list.clear()
             self.year_tabs.clear()
 
-            # Re-initialize years based on new selection
+            # 新しい選択に基づいて年次を再初期化
             self.years = self._get_all_leaf_years(hierarchy_dict)
 
-            # Re-create tabs and widgets that were deleted
+            # 削除したタブとウィジェットを再作成
             self.combination_time_tab = QWidget()
             self.tab_settings = QWidget()
 
@@ -1596,14 +1595,14 @@ class Application(QMainWindow):
             self.stacked_widget.addWidget(self.tab_settings)
             self._add_tab_item("設定", "setting")
 
-            # Re-initialize year_data (important for subject data)
+            # 教科データに合わせてyear_dataを再初期化
             self.year_data = {}
             for year in self.years:
-                # Helper to convert old dict format to new list format
+                # 旧dict形式を新しいlist形式へ変換する補助関数
                 def _convert_to_list_format(data_dict):
                     if isinstance(data_dict, dict):
                         return [{"name": s, "data": d} for s, d in data_dict.items()]
-                    return data_dict # Assume already list format
+                    return data_dict # すでにlist形式とみなす
 
                 self.year_data[year] = {
                     "table_layout": self.config.get(f"table_layout{year}", []),
@@ -1642,24 +1641,24 @@ class Application(QMainWindow):
                 else:
                     self.base_units_value = 0
 
-            # Re-create widgets for the new tabs
-            # Ensure any previous widgets are cleared to avoid duplication
+            # 新しいタブ用のウィジェットを再作成
+            # 重複防止のため以前のウィジェットをクリアする
             try:
-                # clear existing profile_tab_widget and other dynamic widgets if present
+                # 既存のprofile_tab_widgetなど動的ウィジェットがあれば削除
                 if hasattr(self, 'profile_tab_widget'):
                     self.profile_tab_widget.deleteLater()
             except Exception:
                 pass
-            # Remove any child widgets from tabs to avoid duplicates
+            # タブ内の子ウィジェットを削除して重複を防ぐ
             for i in range(self.stacked_widget.count()):
                 w = self.stacked_widget.widget(i)
                 for child in w.findChildren(QWidget):
-                    # avoid deleting main containers like stacked_widget itself
+                    # stacked_widget本体など主要コンテナは削除しない
                     if child is not self.stacked_widget and child is not self.combination_time_tab and child is not self.tab_settings:
                         child.deleteLater()
             self.create_widgets()
 
-            # Update tooltips (copied from __init__)
+            # ツールチップを更新（__init__と同内容）
             self.tab_list.item(0).setToolTip("作成した時間割を管理・保存します。")
             for i, year in enumerate(self.years):
                 year_label = year.split('_')[-1]
@@ -1696,7 +1695,7 @@ class Application(QMainWindow):
             # ConfigManagerのconfigも更新
             self.config_manager.config = self.config
 
-            # Reset user settings and save the new config path
+            # ユーザー設定をリセットし、新しい設定ファイルパスを保存
             self._reset_user_settings()
             
             # 新しい設定ファイルのYEARS_SUBJECTS_UNITS_*をuser_settingsに反映
@@ -1739,20 +1738,20 @@ class Application(QMainWindow):
     def _get_all_leaf_years(self, hierarchy):
         collected_paths = []
         
-        # Add this check: If hierarchy is empty, return empty list
+        # 階層が空なら空リストを返す
         if not hierarchy:
             return []
 
         def find_nodes(node, current_path_parts):
-            # If the current node is an empty dictionary, it's a leaf
+            # 現在ノードが空dictなら葉ノードとして扱う
             if not node:
-                if current_path_parts: # Ensure it's not the initial empty path
+                if current_path_parts: # 初期の空パスではないことを確認
                     collected_paths.append("_".join(current_path_parts))
                 return
 
-            # If the node is not empty, iterate through its children
+            # ノードが空でなければ子要素を走査
             for key, value in node.items():
-                # Recursively call find_nodes for each child
+                # 各子要素に対してfind_nodesを再帰呼び出し
                 find_nodes(value, current_path_parts + [key])
 
         find_nodes(hierarchy, [])
@@ -2059,8 +2058,8 @@ class Application(QMainWindow):
             self._add_profile_tab(name)
 
         if self.profile_tab_widget.count() > 0:
-            # Don't call _on_profile_tab_changed, which causes a destructive rebuild.
-            # Instead, just set the initial state directly.
+            # 破壊的な再構築を避けるため_on_profile_tab_changedは呼ばない。
+            # 代わりに初期状態だけを直接設定する。
             active_index = self.profile_tab_widget.currentIndex()
             if active_index == -1:
                 active_index = 0
@@ -2071,7 +2070,7 @@ class Application(QMainWindow):
             for year in self.years:
                 self.year_data[year]["active_profile_name"] = active_profile_name
             
-            # Load the UI state for the initially selected profile
+            # 初期選択プロファイルのUI状態を読み込む
             self._load_profile_ui_state(active_profile_name)
             self.check_subjects_units()
             self.update_all_highlights()
@@ -2230,8 +2229,8 @@ class Application(QMainWindow):
 
     def _on_profile_tab_changed_wrapper(self, index):
         """プロファイルタブが切り替わったときに呼ばれるラッパー。並び替えを検出し、元の処理を呼ぶ。"""
-        if not hasattr(self, 'profile_tab_widget'): # Widget not yet initialized, skip
-            self._on_profile_tab_changed(index) # Still call the main handler
+        if not hasattr(self, 'profile_tab_widget'): # ウィジェット未初期化ならスキップ
+            self._on_profile_tab_changed(index) # メインハンドラは引き続き呼ぶ
             return
 
         current_order = [self.profile_tab_widget.tabText(i) for i in range(self.profile_tab_widget.count())]
@@ -2247,7 +2246,7 @@ class Application(QMainWindow):
         self._on_profile_tab_changed(index)
 
     def _save_profile_order(self):
-        """Saves the current order of the profile tabs to user settings."""
+        """現在のプロファイルタブ順をユーザー設定へ保存する。"""
         if not hasattr(self, 'profile_tab_widget'):
             return
 
@@ -2322,7 +2321,7 @@ class Application(QMainWindow):
 
     def _on_art_subject_changed(self, text, profile_name=None, idx=None):
         """芸術科目の選択が変更された時の処理"""
-        # If profile_name provided by signal lambda, use it; else derive from current UI
+        # signal lambdaからprofile_nameが渡された場合はそれを使い、なければ現在のUIから取得
         if profile_name:
             active_profile_name = profile_name
         else:
@@ -2340,7 +2339,6 @@ class Application(QMainWindow):
         """時間割操作モードが変更されたときの処理"""
         if checked:
             self.current_timetable_mode = self.mode_button_map.get(button)
-            # print(f"Timetable mode changed to: {self.current_timetable_mode}") # For debugging
 
     def _save_timetable_ui_state(self):
         """時間割タブの現在のUI状態（プロファイル、スクロール位置）を保存する"""
@@ -2398,7 +2396,7 @@ class Application(QMainWindow):
         self.timetable_order_cb = QCheckBox()
         self.timetable_order_cb.setChecked(self._get_setting("TIMETABLE_ORDER",True))
         self.timetable_order_cb.stateChanged.connect(self.save_app_settings) # 保存処理を接続
-        # Also persist immediately to user settings file
+        # ユーザー設定ファイルにも即時反映する
         self.timetable_order_cb.stateChanged.connect(self._save_user_settings)
         order_layout.addWidget(self.timetable_order_cb)
 
@@ -2475,7 +2473,7 @@ class Application(QMainWindow):
 
     def save_app_settings(self):
         """アプリケーション設定をconfig.jsonに保存する"""
-        # The actual values are read from the widgets inside _save_user_settings
+        # 実際の値は_save_user_settings内でウィジェットから読み取る
         self.config["TIMETABLE_ORDER"] = self.timetable_order_cb.isChecked()
         self.max_memory_limit = self.memory_limit_slider.value()
         self.config["APP_FONT_SIZE"] = self.main_font_size_spinbox.value()
@@ -2504,27 +2502,27 @@ class Application(QMainWindow):
         # 単位数を再計算
         self.check_subjects_units()
 
-        # Persist the same settings into the user config.json so they are restored next launch
+        # 次回起動時に復元できるよう同じ設定をuser config.jsonへ保存
         try:
             self.user_settings['APP_FONT_SIZE'] = self._get_setting('APP_FONT_SIZE')
             self.user_settings['MAX_MEMORY_LIMIT'] = self.max_memory_limit
 
-            # Merge filter_settings
+            # filter_settingsをマージ
             filter_settings = self.user_settings.get('filter_settings', {}) if isinstance(self.user_settings, dict) else {}
-            # Keep existing filter settings; ensure INCLUDE_FIXED preserved
+            # 既存のフィルター設定を維持し、INCLUDE_FIXEDも保持する
             filter_settings['INCLUDE_FIXED'] = self.INCLUDE_FIXED
             self.user_settings['filter_settings'] = filter_settings
 
-            # last opened config and years_hierarchy
+            # 最後に開いたconfigとyears_hierarchy
             self.user_settings['last_opened_config'] = str(self.config_path) if hasattr(self, 'config_path') else self.user_settings.get('last_opened_config')
             self.user_settings['years_hierarchy'] = self.selected_department_path_key
 
-            # Also persist explicit settings shown in .txt (ensure these three keys exist)
+            # .txtに表示する明示設定も保存（三つのキーを必ず持たせる）
             self.user_settings['TIMETABLE_ORDER'] = bool(self._get_setting('TIMETABLE_ORDER', False))
             self.user_settings['RUN_TUTORIAL_ON_STARTUP'] = bool(self._get_setting('RUN_TUTORIAL_ON_STARTUP', False))
             self.user_settings[config_key] = self._get_setting(config_key)
 
-            # Write back
+            # 書き戻す
             path = self._get_user_settings_path()
             with open(path, 'w', encoding='utf-8') as f:
                 json.dump(self.user_settings, f, indent=4, ensure_ascii=False)
@@ -2538,10 +2536,10 @@ class Application(QMainWindow):
     
     def save_filter_settings(self):
         """フィルター設定をconfig.jsonに保存する"""
-        if not hasattr(self, 'setting_window'): # check if window has been created
+        if not hasattr(self, 'setting_window'): # ウィンドウ生成済みか確認
             return
         
-        # Update attributes before saving
+        # 保存前に属性値を更新
         self.ACTIVE_FILTER_SUBJECT = self.active_filter_subject_cb.isChecked()
         self.ACTIVE_FILTER_SUBJECT_AMOUNT = self.active_filter_subject_amount_cb.isChecked()
         self.ACTIVE_MIN_SUBJECT = self.active_min_subject_cb.isChecked()
@@ -2559,7 +2557,7 @@ class Application(QMainWindow):
 
     def save_config_file(self):
         """config.jsonへの自動保存は廃止しました（無効化）。設定は専用ファイルで保存してください。"""
-        # No-op to avoid writing to config.json per user request
+        # ユーザー設定によりconfig.jsonへは書き込まない
         return
 
     def save_dedicated_file(self):
@@ -2584,7 +2582,7 @@ class Application(QMainWindow):
                 art_subject_selections=self.art_subject_selections,
                 active_profile_name=self.get_active_profile_name()
             )
-            # minimize flicker: disable updates around the message box and process events
+            # ちらつきを抑えるため、メッセージボックス前後で更新を止めてイベントを処理
             try:
                 self.setUpdatesEnabled(False)
             except Exception:
@@ -2652,25 +2650,25 @@ class Application(QMainWindow):
                 QApplication.processEvents()
             return
 
-        # Restore basic structures
+        # 基本構造を復元
         self.config = payload.get("config", self.config)
-        # payload year_data may contain only serializable data; integrate carefully
+        # 読み込みデータのyear_dataは直列化可能な値だけを持つため慎重に統合する
         loaded_years = payload.get("year_data", {})
         if loaded_years:
-            # Merge loaded serializable keys into existing year_data structure
+            # 読み込んだ直列化可能キーを既存year_dataへマージ
             for year, pdata in loaded_years.items():
                 if year not in self.year_data:
                     self.year_data[year] = {}
-                # copy known serializable keys
+                # 既知の直列化可能キーをコピー
                 for k, v in pdata.items():
                     self.year_data[year][k] = v
 
         self.art_subject_selections = payload.get("art_subject_selections", self.art_subject_selections)
-        # Follow Excel's minimal UI update pattern to reduce flicker
+        # Excel読み込み時と同様に最小限のUI更新でちらつきを抑える
         try:
-            # Apply loaded data into structures first
+            # 先に読み込みデータを内部構造へ反映
             active_profile_name = payload.get('active_profile', self.get_active_profile_name())
-            # Update saved profiles and other serializable parts without full teardown
+            # 全体再構築を避け、保存プロファイルなど直列化部分だけ更新
             for year in self.years:
                 pdata = self.year_data.get(year, {})
                 loaded = loaded_years.get(year, {})
@@ -2686,7 +2684,7 @@ class Application(QMainWindow):
                     pdata['all_slots'] = loaded.get('all_slots', pdata.get('all_slots', []))
                 self.year_data[year] = pdata
 
-            # Update UI states similarly to load_timedate: update checkboxes, refresh timetable tab, recalc units
+            # load_timedateと同様にチェック状態、時間割タブ、単位計算を更新
             for year in self.years:
                 active = self.year_data[year].get('active_profile_name', active_profile_name)
                 subjects_in_timetable = set(self.year_data[year].get('saved_profiles', {}).get(active, {}).values())
@@ -2694,10 +2692,10 @@ class Application(QMainWindow):
                     if hasattr(frame, 'subject_cb'):
                         frame.subject_cb.setChecked(frame.subject_name in subjects_in_timetable)
 
-            # Refresh only necessary parts
+            # 必要箇所のみ更新
             self.create_combination_time_tab()
 
-            # Set the active tab to the one from the loaded file
+            # 読み込んだファイルのアクティブタブへ切り替える
             active_profile_name = payload.get('active_profile', self.get_active_profile_name())
             for i in range(self.profile_tab_widget.count()):
                 if self.profile_tab_widget.tabText(i) == active_profile_name:
@@ -3082,7 +3080,7 @@ class Application(QMainWindow):
         parts = year_label.split('_')
         department_label = []
         for y in parts:
-            if y: # Ensure there's a department part
+            if y: # 学科部分があることを確認
                 department_label.append(y)
                 label = '_'.join(department_label)
                 department_req_key = f"REQUIRED_SUBJECTS_{label}"
@@ -3145,18 +3143,18 @@ class Application(QMainWindow):
                 # 背景色の決定とスタイルシートの設定
                 bg_color_str = ""
                 if is_config_fixed:
-                    # Button is disabled later, so the theme should handle the appearance.
+                    # ボタンは後で無効化されるため、見た目はテーマに任せる。
                     pass
                 elif is_user_locked:
-                    # Blueish highlight for user-locked slots
+                    # ユーザーロック枠は青系で強調
                     highlight_color = QApplication.palette().color(QPalette.Highlight)
                     highlight_color.setAlpha(80)
                     bg_color_str = f"background-color: {highlight_color.name(QColor.HexArgb)};"
                 elif is_excluded:
-                    # Reddish highlight for excluded slots
+                    # 除外枠は赤系で強調
                     bg_color_str = "background-color: rgba(255, 0, 0, 70);"
                 elif common_subjects and subject_name in common_subjects and subject_name not in config_fixed_slots.values() and subject_name not in user_fixed_slots.values():
-                    # Yellowish highlight for common subjects
+                    # 共通教科は黄系で強調
                     tooltip_color = QApplication.palette().color(QPalette.ToolTipBase)
                     tooltip_text_color = QApplication.palette().color(QPalette.ToolTipText)
                     bg_color_str = f"background-color: {tooltip_color.name()}; color: {tooltip_text_color.name()};"
@@ -3244,11 +3242,11 @@ class Application(QMainWindow):
         """時間割スロットがクリックされたときのモード別ディスパッチャ"""
         if self.is_tutorial_running:
             current_step = self.tutorial_manager.get_current_step()
-            # The subject_added step does not need this preliminary signal.
+            # subject_addedステップでは事前シグナルは不要。
             if current_step and current_step.expected_value and current_step.expected_value.get('action') == 'subject_added':
                 pass
             else:
-                # This signal is used by other tutorial steps to check for right-clicks, etc.
+                # このシグナルは他のチュートリアル手順で右クリック判定などに使う。
                 self.tutorial_signal.emit({'button': button, 'subject': subject_in_slot, 'slot': slot})
 
         if self.current_timetable_mode in ["＋", "🗑️"]:
@@ -3359,7 +3357,7 @@ class Application(QMainWindow):
                             self.check_subjects_units()
                             self.update_all_highlights()
 
-                            # 3. 強制進行処理 (The Nuclear Option)
+                            # 3. 強制進行処理
                             # シグナル待ち等は無視し、マネージャーの内部状態を強制リセットして次へ進める
                             try:
                                 # 進行中フラグを強制的に解除（これでnext_stepの早期リターンを回避）
@@ -3458,8 +3456,8 @@ class Application(QMainWindow):
         if button == Qt.RightButton:  # 右クリック：教科固定
             if subject_in_slot != "－" and subject_in_slot:
                 
-                # Find the subject group that the clicked slot belongs to.
-                # First, check the predefined groups.
+                # クリックされた枠が属する教科グループを探す。
+                # まず定義済みグループを確認する。
                 subject_slots_base = data.get("subject_slots_base", [])
                 target_group = None
                 for subject_info in subject_slots_base:
@@ -3471,7 +3469,7 @@ class Application(QMainWindow):
                     if target_group:
                         break
                 
-                # If no predefined group, find the group from the current timetable.
+                # 定義済みグループがなければ現在の時間割からグループを探す。
                 if target_group is None:
                     active_profile_name = self.year_data[year_label].get("active_profile_name", "Default")
                     current_timetable = data["saved_profiles"].get(active_profile_name, {})
@@ -3479,20 +3477,20 @@ class Application(QMainWindow):
                     if slots_for_subject:
                         target_group = sorted(list(slots_for_subject))
                     else:
-                        target_group = [slot] # Fallback to single slot
+                        target_group = [slot] # 単一枠として扱う
 
 
-                # Check if any slot in the target group is already fixed with this subject.
+                # 対象グループ内に同じ教科で固定済みの枠があるか確認する。
                 is_already_fixed = any(s in user_fixed_slots and user_fixed_slots[s] == subject_in_slot for s in target_group)
 
                 if is_already_fixed:
-                    # Unfix all slots in the group.
+                    # グループ内の固定をすべて解除する。
                     for s in target_group:
                         if s in user_fixed_slots:
                             del user_fixed_slots[s]
                 else:
-                    # Fix all slots in the group.
-                    # Before fixing, check for conflicts with other user-fixed subjects.
+                    # グループ内の枠をすべて固定する。
+                    # 固定前に他のユーザー固定教科との競合を確認する。
                     conflict_found = False
                     for s in target_group:
                         if s in user_fixed_slots:
@@ -3502,21 +3500,21 @@ class Application(QMainWindow):
                         for s in target_group:
                             user_fixed_slots[s] = subject_in_slot
             else:
-                # Do nothing if right-clicking on an empty slot.
+                # 空枠の右クリックでは何もしない。
                 return
 
         elif button == Qt.LeftButton:  # 左クリック：枠無効化
             profile_name = self.get_active_profile_name()
             profile_slots = self.year_data[year_label].setdefault("profile_all_slots", {}).setdefault(profile_name, [])
-            # Toggle slot validity.
+            # 枠の有効/無効を切り替える。
             if slot in profile_slots:
                 profile_slots.remove(slot)
             else:
                 profile_slots.append(slot)
         else:
-            return  # Ignore other clicks.
+            return  # その他のクリックは無視する。
 
-        # Refresh UI.
+        # UIを更新する。
         if not self.is_tutorial_running:
             self.create_combination_time_tab()
             self.check_subjects_units()
@@ -3525,7 +3523,7 @@ class Application(QMainWindow):
             self._restore_timetable_ui_state(saved_state)
         else:
             # チュートリアル中は、UIの完全な再構築を避けて手動で更新
-            # Find all buttons in the current profile tab to update their styles
+            # 現在のプロファイルタブ内のボタンを探してスタイルを更新
             page = self.profile_tab_widget.currentWidget()
             if page:
                 buttons = page.findChildren(TimetableSlotButton)
@@ -3544,7 +3542,7 @@ class Application(QMainWindow):
                     elif is_excluded_style:
                         bg_color_str = "background-color: rgba(255, 0, 0, 70);"
                     
-                    # Reset style if no condition met, or apply the new style
+                    # 条件に合わない場合はスタイルを戻し、合う場合は新しいスタイルを適用
                     btn.setStyleSheet(bg_color_str)
 
             self.check_subjects_units()
@@ -3560,24 +3558,24 @@ class Application(QMainWindow):
         # QListWidgetのインデックスとQStackedWidgetのインデックスは同じ
         # 0: 時間割タブ, 1-N: 学年タブ, N+1: 設定タブ
         if index == 0: # 時間割タブ
-            # minimize flicker: only update if current stacked widget is not already combination_time_tab
+            # ちらつき抑制のため、現在表示中でなければcombination_time_tabへ切り替える
             try:
                 current = self.stacked_widget.currentWidget()
             except Exception:
                 current = None
             if current is not self.combination_time_tab:
-                # Avoid reconstructing if already current
+                # すでに表示中なら再構築しない
                 self.create_combination_time_tab()
             self.clear_results_button.setVisible(False)
             if hasattr(self, 'timetable_bottom_specific_frame'):
                 self.timetable_bottom_specific_frame.setVisible(True)
         elif 0 < index <= len(self.years): # 学年タブ
             year_label = self.years[index - 1]
-            # protect update from deleted widgets
+            # 削除済みウィジェットへの更新を防ぐ
             try:
                 self.update_year_tab_visuals(year_label)
             except RuntimeError:
-                # log and ignore if widgets already deleted
+                # ウィジェットが削除済みなら記録して無視する
                 print(f"Warning: update_year_tab_visuals skipped for {year_label} due to deleted widgets")
             self.clear_results_button.setVisible(True)
             if hasattr(self, 'timetable_bottom_specific_frame'):
@@ -3590,23 +3588,23 @@ class Application(QMainWindow):
 
 
     def _add_tab_item(self, text, icon_name):
-        """Creates and adds a QListWidgetItem with a theme-aware icon."""
-        # Determine base path for icons
+        """テーマに応じたアイコン付きのQListWidgetItemを作成して追加する。"""
+        # アイコンの基準パスを決定
         if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
             base_path = sys._MEIPASS
         else:
             base_path = os.path.abspath(os.path.dirname(__file__))
         
-        # Define the single color to use based on the theme.
+        # テーマに応じた単色アイコン色を決定する。
         target_color = "#FFFFFF" if self.is_dark_theme() else "#1F1F1F"
 
-        # Construct path to the single base SVG file
+        # 共通ベースSVGファイルのパスを組み立てる
         icon_path = os.path.join(base_path, "svgs", f"{icon_name}.svg")
 
-        # Create icon using the color-swapping loader
+        # 色差し替えローダーでアイコンを生成
         icon = self._create_icon_from_svg_data(icon_path, target_color)
 
-        # Create list widget item and add it
+        # リスト項目を生成して追加
         item = QListWidgetItem(text)
         if icon:
             item.setIcon(icon)
@@ -3641,18 +3639,18 @@ class Application(QMainWindow):
                 is_placeable = False
                 conflicting_subject_info = ""
 
-                if not possible_groups: # No time slots defined, always placeable
+                if not possible_groups: # 時間枠未定義なら常に配置可能
                     is_placeable = True
                 else:
                     can_be_placed = False
-                    # Check if at least one slot group is available
+                    # 利用可能な時間枠グループが一つ以上あるか確認
                     for group in possible_groups:
                         intersecting_slots = set(group) & locked_slots
                         if not intersecting_slots:
                             can_be_placed = True
-                            break  # This group of slots is fine, so the subject is placeable
+                            break  # この時間枠グループは利用可能なので配置可能
                         else:
-                            # This group conflicts. Find which locked subject is the cause.
+                            # このグループは競合しているため、原因のロック済み教科を探す。
                             slot = next(iter(intersecting_slots))
                             conflicting_subject = user_fixed_slots.get(slot, "不明")
                             conflicting_subject_info = f"手動で固定された「{conflicting_subject}」と時間（{slot}）が競合します。"
@@ -3674,7 +3672,7 @@ class Application(QMainWindow):
         ))
 
         # --- レイアウトの再構築 ---
-        # Reattach frames safely: ignore frames whose underlying C++ object was deleted
+        # C++側オブジェクトが削除済みのフレームを無視し、安全に再配置する
         for frame in list(subject_frames):
             # ウィジェットが有効か確認してからレイアウト操作
             if widget_is_valid(frame):
@@ -3710,7 +3708,7 @@ class Application(QMainWindow):
                     prefix_cb.setChecked(False)
                 frame.setStyleSheet(f"background-color: {self.theme['user_locked_conflict']};")
 
-            else: # state == "normal"
+            else: # stateがnormalの場合
                 frame.setEnabled(True)
                 frame.setStyleSheet("")
                 frame.setToolTip("")
@@ -3987,26 +3985,26 @@ class Application(QMainWindow):
         # 教科ごとのスロット情報をマップに変換して効率化
         subject_slots_map = {item["name"]: item["data"] for item in data.get("subject_slots_base", [])}
 
-        # We'll compute a match score for each subject (number of matched keywords + number of matched slots)
+        # 各教科の一致スコア（一致キーワード数 + 一致枠数）を計算する
         initial_order_map = {item["name"]: i for i, item in enumerate(data.get("subject_slots_base", []))}
         visible_with_score = []
 
         for frame in data.get("subject_frames", []):
             subject_name = frame.subject_name
 
-            # Prepare text targets
+            # 検索対象テキストを準備
             subject_name_normalized = unicodedata.normalize("NFKC", subject_name).lower()
             aliases = [unicodedata.normalize("NFKC", alias).lower() for alias in self.SUBJECT_ALIASES.get(subject_name, [])]
             search_targets = [subject_name_normalized] + aliases
 
-            # Text match count (OR across keywords; count how many keywords matched)
+            # テキスト一致数（キーワードはOR条件で一致数を数える）
             text_match_count = 0
             if text_keywords:
                 for kw in text_keywords:
                     if any(kw in target for target in search_targets):
                         text_match_count += 1
 
-            # Slot match count (count how many selected slots are available for this subject)
+            # 枠一致数（選択枠のうち教科で利用可能な枠数を数える）
             slot_match_count = 0
             possible_slots_for_subject = {s.lower() for grp in subject_slots_map.get(subject_name, []) for s in grp}
             if selected_slots:
@@ -4052,10 +4050,10 @@ class Application(QMainWindow):
             else:
                 frame.hide()
 
-        # Reorder visible frames by descending total_matches, then by initial order
+        # 表示中フレームを一致数の降順、次に初期順で並べ替える
         if visible_with_score:
             visible_with_score.sort(key=lambda x: (-x[1], initial_order_map.get(x[0].subject_name, 999)))
-            # Attempt to get a layout that holds these frames
+            # 対象フレームを保持するレイアウトを取得する
             layout_box = None
             for frame, _ in visible_with_score:
                 parent = frame.parent()
@@ -4159,9 +4157,9 @@ class Application(QMainWindow):
 
         # 凡例ボタン
         legend_button = QPushButton("?")
-        legend_button.setFixedSize(30, 30) # Adjust size as needed
-        legend_button.setStyleSheet("background-color: #2196F3; color: white; border-radius: 15px;") # Blue background, white text, circular
-        legend_button.setToolTip("このボタンは凡例を表示します。") # Add a tooltip
+        legend_button.setFixedSize(30, 30) # 必要なサイズに調整
+        legend_button.setStyleSheet("background-color: #2196F3; color: white; border-radius: 15px;") # 青背景、白文字、円形にする
+        legend_button.setToolTip("このボタンは凡例を表示します。") # ツールチップを追加
         legend_button.clicked.connect(self._show_legend)
         top_layout.addWidget(legend_button)
 
@@ -4171,7 +4169,7 @@ class Application(QMainWindow):
 
         tab.layout().addWidget(top_frame)
 
-        # Status message label
+        # ステータスメッセージ用ラベル
         status_label = QLabel()
         status_label.setWordWrap(True)
         status_label.setAlignment(Qt.AlignCenter)
@@ -4294,7 +4292,7 @@ class Application(QMainWindow):
             prefix_layout.setAlignment(Qt.AlignLeft)
 
             unique_prefixes = set()
-            for slots in subject_data: # Use subject_data
+            for slots in subject_data: # subject_dataを使用
                 prefix = "".join(sorted(set(slot[0] for slot in slots)))
                 unique_prefixes.add(prefix)
 
@@ -4332,7 +4330,6 @@ class Application(QMainWindow):
             scroll_layout.addWidget(row_frame)
 
         # 初期重複状態を適用
-        # self._update_duplicate_status(year_label, used_in_other_year) # Removed as update_all_highlights handles this
 
         scroll_area.setWidget(scroll_content)
         tab.layout().addWidget(scroll_area)
@@ -4340,7 +4337,6 @@ class Application(QMainWindow):
         # 検索用にレイアウトを保存
         data["subject_scroll_layout"] = scroll_layout
 
-        # self.initialize_highlight_labels() # Removed as widgets are registered in the loop
 
     def _get_submit_btn(self, year_label):
         return getattr(self, f"submit_btn_{year_label}", None)
@@ -4391,7 +4387,7 @@ class Application(QMainWindow):
             list_widget = window.window_data.get('combination_list_widget')
             if buttons and list_widget:
                 current_row = list_widget.currentRow()
-                if current_row == -1: # No selection, default to first
+                if current_row == -1: # 未選択なら先頭を既定にする
                     current_row = 0
                 if 0 <= current_row < len(buttons):
                     return buttons[current_row]
@@ -4433,10 +4429,10 @@ class Application(QMainWindow):
             if year in self.year_data:
                 data = self.year_data[year]
                 
-                # Get subjects from the check_vars which should be in sync with the current profile
+                # 現在プロファイルと同期しているcheck_varsから教科を取得
                 checked_subjects = {subject for subject, is_checked in data.get("check_vars", {}).items() if is_checked}
                 
-                # Also include subjects from the saved timetable for this profile to correctly highlight the main timetable view
+                # メイン時間割の強調表示のため、保存済み時間割の教科も含める
                 saved_timetable = data.get("saved_profiles", {}).get(active_profile_name, {})
                 subjects_from_timetable = {v for v in saved_timetable.values() if v and v.strip() not in ["－", "-", ""]}
 
@@ -4452,7 +4448,7 @@ class Application(QMainWindow):
         art_selections = self.art_subject_selections.get(active_profile_name, [])
         for art_subject in art_selections:
             if art_subject:
-                 # Add to all years for cross-year prerequisite checks
+                 # 学年間の前提教科チェック用に全学年へ追加
                 for year in self.years:
                     if year in year_subjects:
                         year_subjects[year].add(art_subject)
@@ -4488,10 +4484,10 @@ class Application(QMainWindow):
         for year in self.years:
             if year not in self.year_data:
                 continue
-            data = self.year_data[year] # Get data for current year
+            data = self.year_data[year] # 現在年次のデータを取得
             
-            # --- Update Required Subject Mark Labels ---
-            for frame in data.get("subject_frames", []): # Iterate through subject frames
+            # --- 必須教科マークラベルを更新 ---
+            for frame in data.get("subject_frames", []): # 教科フレームを走査
                 subject = frame.subject_name
                 if hasattr(frame, 'required_mark_label'):
                     req_info = self._get_requirement_info(subject, year)
@@ -4500,9 +4496,9 @@ class Application(QMainWindow):
                         frame.required_mark_label.setStyleSheet(f"color: {req_info['color']}; font-weight: bold;")
                     else:
                         frame.required_mark_label.setText("")
-                        frame.required_mark_label.setStyleSheet("") # Reset stylesheet
+                        frame.required_mark_label.setStyleSheet("") # スタイルシートをリセット
 
-            # --- Apply other highlights (duplicate, prerequisite, no-together) ---
+            # --- その他の強調表示（重複、前提不足、同時選択不可）を適用 ---
             widgets_dict = data.get("duplicate_highlight_status", {}).get("widgets", {})
             other_years_subjects = set().union(*(s for y, s in year_subjects.items() if y != year))
 
@@ -4548,9 +4544,9 @@ class Application(QMainWindow):
         # 4. この組み合わせを保存したウィンドウを閉じる
         sender_button = self.sender()
         if sender_button and isinstance(sender_button, QPushButton):
-            # find the top-level window the button belongs to
+            # ボタンが属する最上位ウィンドウを取得
             parent_window = sender_button.window()
-            if parent_window is not self: # don't close the main window
+            if parent_window is not self: # メインウィンドウは閉じない
                 parent_window.close()
 
     def _force_update_year_tab(self, year_label):
@@ -5008,7 +5004,7 @@ class Application(QMainWindow):
                 layout.addWidget(scroll_area)
                 tab_widget.addTab(tab, f"{i+1}")
 
-            # Clear and update navigation
+            # ナビゲーションをクリアして更新
             for i in reversed(range(page_nav_layout.count())):
                 page_nav_layout.itemAt(i).widget().setParent(None)
             for i in reversed(range(more_button_layout.count())):
@@ -5084,7 +5080,7 @@ class Application(QMainWindow):
             missing_req_label = QLabel("不足している必須科目:\n")
             missing_reqs = self.check_required_subjects(timetable, self.year_label_to_display, include_all=True)
             
-            # Group missing requirements by condition_num and is_or_group
+            # 不足要件をcondition_numとis_or_groupでグループ化
             grouped_missing_info = {}
             for info in missing_reqs:
                 key = (info['condition_num'], info['is_or_group'])
@@ -5092,25 +5088,25 @@ class Application(QMainWindow):
                     grouped_missing_info[key] = []
                 grouped_missing_info[key].append(info)
 
-            if missing_reqs: # Check if there are any missing requirements
+            if missing_reqs: # 不足要件があるか確認
                 missing_req_label.setStyleSheet("font-weight: bold; color: red;")
                 
                 for key, infos_list in grouped_missing_info.items():
                     condition_num, is_or_group = key
                     
                     if is_or_group:
-                        # For OR conditions, list the missing options
+                        # OR条件では不足している選択肢を列挙
                         missing_req_label.setText(missing_req_label.text() + f"--- 条件 {condition_num} ---")
                         for info in infos_list:
                             subjects_str = ', '.join(info['subjects'])
                             missing_req_label.setText(missing_req_label.text() + f"  - 教科: {subjects_str} (現在: {info['matched']} / 必要: {info['required']})")
-                        missing_req_label.setText(missing_req_label.text() + "\n") # Add a blank line for separation
+                        missing_req_label.setText(missing_req_label.text() + "\n") # 区切り用の空行を追加
                     else:
-                        info = infos_list[0] # For non-OR, there's only one info per key
+                        info = infos_list[0] # 非OR条件ではキーごとにinfoは一つだけ
                         subjects_str = ', '.join(info['subjects'])
                         missing_req_label.setText(missing_req_label.text() + f"- {subjects_str} (必要: {info['required']}, 一致: {info['matched']})")
                 
-                missing_req_frame.setStyleSheet("background-color: #FFCCCC; border: 1px solid #FF9999; padding: 5px;") # Light red with border and padding
+                missing_req_frame.setStyleSheet("background-color: #FFCCCC; border: 1px solid #FF9999; padding: 5px;") # 薄赤の背景、枠線、余白を設定
             else:
                 missing_req_label.setText(missing_req_label.text() + "なし")
             
@@ -5351,7 +5347,7 @@ class Application(QMainWindow):
         if unique_missing_info:
             grouped_missing_info = {}
             for info in unique_missing_info:
-                # For non-OR groups, include subjects in the key to ensure uniqueness
+                # 非ORグループでは一意性確保のため教科もキーに含める
                 if info['is_or_group']:
                     key = (info['condition_num'], True)
                 else:
@@ -5503,7 +5499,7 @@ class Application(QMainWindow):
     def get_current_profile_lock_settings(self, year_label):
         """現在アクティブなプロファイルのロック設定を取得する"""
         profile_name = self.get_active_profile_name()
-        # Ensure profile exists in the lock settings dictionary
+        # ロック設定辞書にプロファイルが存在することを保証
         if profile_name not in self.year_data[year_label]["profile_lock_settings"]:
             self.year_data[year_label]["profile_lock_settings"][profile_name] = {}
         return self.year_data[year_label]["profile_lock_settings"][profile_name]
@@ -5512,7 +5508,7 @@ class Application(QMainWindow):
         """現在アクティブなプロファイルの有効なスロットリストを取得する"""
         profile_name = self.get_active_profile_name()
         if profile_name not in self.year_data[year_label].get("profile_all_slots", {}):
-            # If profile doesn't exist, initialize from the base 'all_slots'
+            # プロファイルがなければ基本のall_slotsから初期化
             base_slots = self.year_data[year_label].get("all_slots", [])
             self.year_data[year_label].setdefault("profile_all_slots", {})[profile_name] = base_slots[:]
         return self.year_data[year_label]["profile_all_slots"][profile_name]
@@ -5781,7 +5777,7 @@ class Application(QMainWindow):
             "years_hierarchy": self.selected_department_path_key,
             "filter_settings": filter_settings,
         }
-        # Ensure these explicit keys are read from current widgets (avoid stale self.config)
+        # 古いself.configを避けるため、明示キーは現在のウィジェットから読み取る
         try:
             settings['TIMETABLE_ORDER'] = self.timetable_order_cb.isChecked()
         except Exception:
@@ -5812,14 +5808,14 @@ class Application(QMainWindow):
         """
         self.config_manager.reset_user_settings()
         self.user_settings = {}
-        # Create a new settings file with current UI state
+        # 現在のUI状態で新しい設定ファイルを作成
         self._save_user_settings()
 
     def _save_profile_ui_state(self, profile_name):
         return self._save_profile_tab_state(profile_name)
 
     def _save_profile_tab_state(self, profile_name=None):
-        """Save current profile tab UI state for later restoration."""
+        """あとで復元できるよう現在のプロファイルタブUI状態を保存する。"""
         if profile_name is None:
             profile_name = self.get_active_profile_name()
         if not profile_name:
@@ -5876,7 +5872,7 @@ class Application(QMainWindow):
                     if subject_prefixes:
                         prefixes[subject_name] = subject_prefixes
 
-                # Save into a temporary holder for quick restore
+                # 素早く復元できるよう一時領域へ保存
                 year_data.setdefault("_saved_ui_snapshot", {})[profile_name] = {
                     "checked": list(checked_subjects),
                     "important": list(important_subjects),
@@ -5884,7 +5880,7 @@ class Application(QMainWindow):
                 }
 
     def _restore_profile_tab_state(self, profile_name=None):
-        """Restore previously saved profile tab UI state."""
+        """保存済みのプロファイルタブUI状態を復元する。"""
         if profile_name is None:
             profile_name = self.get_active_profile_name()
         if not profile_name:
@@ -5932,7 +5928,7 @@ class Application(QMainWindow):
                         cb.setChecked(prefix in subject_prefixes)
                         cb.blockSignals(False)
 
-                # sync internal vars
+                # 内部変数を同期
                 if "check_vars" in year_data:
                     for subject in year_data["check_vars"]:
                         year_data["check_vars"][subject] = subject in checked_subjects
@@ -6004,7 +6000,7 @@ class Application(QMainWindow):
                     
                     subject_name = frame.subject_name
                     
-                    # Block signals to prevent unwanted side-effects
+                    # 意図しない副作用を防ぐためシグナルを一時停止
                     frame.subject_cb.blockSignals(True)
                     frame.important_cb.blockSignals(True)
                     
@@ -6013,7 +6009,7 @@ class Application(QMainWindow):
                     
                     is_important = subject_name in important_subjects
                     frame.important_cb.setChecked(is_important)
-                    frame.important_cb.setEnabled(is_checked) # Enable 'important' only if subject is checked
+                    frame.important_cb.setEnabled(is_checked) # 教科が選択されている場合だけimportantを有効化
 
                     frame.subject_cb.blockSignals(False)
                     frame.important_cb.blockSignals(False)
@@ -6084,24 +6080,24 @@ class Application(QMainWindow):
         return None
 
 def start_main_app():
-    """Entry point for the main application executable."""
+    """本体アプリ実行ファイルのエントリーポイント。"""
     import tempfile
     
-    # This function is called when this script is executed directly.
+    # スクリプトから直接起動された場合の処理
     app = QApplication(sys.argv)
-    set_button_styles(app) # This function is in the global scope of the file
+    set_button_styles(app) # ファイルスコープの関数で初期スタイルを適用
 
-    # The main window, Application, is instantiated with splash=None
-    # because the splash screen is handled by the external launcher.
+    # スプラッシュ画面は外部ランチャーが扱うためApplicationにはNoneを渡す
+    # スプラッシュ画面は外部ランチャー側で表示する。
     window = Application(splash=None)
 
-    # If the user cancels a dialog during initialization, exit gracefully.
+    # 初期化中にユーザーがダイアログをキャンセルした場合は正常終了する。
     if hasattr(window, 'is_exit_requested') and window.is_exit_requested():
         sys.exit(0)
     
     window.show()
     
-    # IPC: Notify launcher that the main window is ready
+    # IPC: メインウィンドウの準備完了をランチャーへ通知
     ipc_ready_file = Path(tempfile.gettempdir()) / "timemanager_ready.tmp"
     try:
         ipc_ready_file.touch()

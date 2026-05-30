@@ -16,7 +16,7 @@ class CheckResult:
     """検証結果を表すデータクラス"""
     file_path: str
     file_name: str
-    status: str  # "OK", "WARNING", "ERROR"
+    status: str  # ステータス値: "OK", "WARNING", "ERROR"
     issues: List[Dict[str, Any]] = field(default_factory=list)
     details: Dict[str, Any] = field(default_factory=dict)
     

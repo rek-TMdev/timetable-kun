@@ -180,7 +180,7 @@ class NoTogetherTab(BaseTab):
             del config_dict["NO_TOGETHER_SUBJECTS"]
     
     # =========================================================================
-    # Event Handlers
+    # イベントハンドラ
     # =========================================================================
     
     def _on_group_selected(self, index: int):
@@ -210,7 +210,7 @@ class NoTogetherTab(BaseTab):
         self.available_list.addItems(sorted(available))
     
     # =========================================================================
-    # Public Methods
+    # 公開メソッド
     # =========================================================================
     
     def add_group(self):
@@ -276,7 +276,7 @@ class NoTogetherTab(BaseTab):
         self.mark_modified()
     
     # =========================================================================
-    # Private Methods
+    # 内部メソッド
     # =========================================================================
     
     def _save_to_item(self):

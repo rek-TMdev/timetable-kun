@@ -189,7 +189,7 @@ class PrerequisiteTab(BaseTab):
             del config_dict["PREREQUISITE_SUBJECTS"]
     
     # =========================================================================
-    # Event Handlers
+    # イベントハンドラ
     # =========================================================================
     
     def _on_parent_selected(self, index: int):
@@ -218,7 +218,7 @@ class PrerequisiteTab(BaseTab):
         self.selection_changed.emit()
     
     # =========================================================================
-    # Public Methods
+    # 公開メソッド
     # =========================================================================
     
     def add_rule(self):
@@ -297,7 +297,7 @@ class PrerequisiteTab(BaseTab):
         self.mark_modified()
     
     # =========================================================================
-    # Private Methods
+    # 内部メソッド
     # =========================================================================
     
     def _save_to_item(self):

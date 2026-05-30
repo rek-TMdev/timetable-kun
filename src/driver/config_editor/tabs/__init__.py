@@ -1,4 +1,4 @@
-# config_editor.tabs package
+# config_editor.tabsパッケージ
 """
 タブウィジェットパッケージ
 

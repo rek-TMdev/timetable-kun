@@ -4,7 +4,7 @@ import re
 import darkdetect
 from pathlib import Path
 import json
-import unicodedata # Added for NFKC normalization
+import unicodedata # NFKC正規化用
 import pykakasi
 from deep_translator import GoogleTranslator
 from datetime import datetime
@@ -13,7 +13,7 @@ from openpyxl.styles import Alignment
 import hashlib
 import copy
 
-# Logging infrastructure
+# ログ基盤
 try:
     from logging_utils import setup_logger, log_exception
     logger = setup_logger("config_editor")
@@ -43,7 +43,7 @@ from PySide6.QtCore import Qt, Signal, QTimer, QEvent
 
 
 def set_button_styles(app, is_dark=None):
-    """Applies a theme-aware stylesheet for QPushButton and QComboBox."""
+    """テーマに応じたQPushButton/QComboBox用スタイルを適用する。"""
     if is_dark is None:
         is_dark = darkdetect.theme() == "Dark"
 
@@ -115,7 +115,7 @@ def set_button_styles(app, is_dark=None):
 
     app.setStyleSheet(dark_style if is_dark else light_style)
 
-# Function to get the base path of the application (handles PyInstaller)
+# アプリケーションの基準パスを取得する（PyInstaller対応）
 def get_base_path():
     # アプリケーションのベースパスを決定
     if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
@@ -136,10 +136,10 @@ def get_exe_directory():
         # 開発時は通常のベースパス
         return Path(os.path.abspath(os.path.dirname(sys.argv[0])))
 
-# --- Start: New helper functions and classes for merge functionality ---
+# --- マージ機能用の補助関数とクラス ---
 
 def calculate_sha256(file_path):
-    """Calculate the SHA256 hash of a file."""
+    """ファイルのSHA256ハッシュを計算する。"""
     if not os.path.exists(file_path):
         return None
     sha256_hash = hashlib.sha256()
@@ -148,7 +148,7 @@ def calculate_sha256(file_path):
             sha256_hash.update(byte_block)
     return sha256_hash.hexdigest()
 
-# --- New Diffing and Merge Logic ---
+# --- 差分検出とマージ処理 ---
 
 def diff_and_merge(base, mine, theirs):
     auto_merged = {}
@@ -180,18 +180,18 @@ def diff_and_merge(base, mine, theirs):
                 auto_merged[key] = val_mine
             continue
 
-        # Conflict found
+        # 競合を検出
         is_mine_dict = isinstance(val_mine, dict) and in_mine
         is_theirs_dict = isinstance(val_theirs, dict) and in_theirs
         is_list_merge_key = key in ["MASTER_SUBJECTS", "YEARS_MESSAGE", "SELECTED_ART_SUBJECT"]
         
-        # Check if values are list-like (a list, or None which implies an empty list)
+        # 値がリスト相当（list、または空リスト扱いのNone）か確認
         val_is_list_or_none = lambda v: isinstance(v, list) or v is None
 
         if is_list_merge_key and val_is_list_or_none(val_mine) and val_is_list_or_none(val_theirs):
             base_set = set(val_base or [])
 
-            # A missing key implies no change from base, not an empty list.
+            # キー欠落は空リストではなく、baseから変更なしとして扱う。
             mine_set = set(val_mine or []) if key in (mine or {}) else base_set
             theirs_set = set(val_theirs or []) if key in (theirs or {}) else base_set
 
@@ -206,14 +206,14 @@ def diff_and_merge(base, mine, theirs):
                 "mine": val_mine, "theirs": val_theirs
             })
         elif is_mine_dict and is_theirs_dict:
-            # Standard dictionary recursion
+            # 標準的なdict再帰処理
             sub_merged, sub_conflicts = diff_and_merge(val_base if isinstance(val_base, dict) else {}, val_mine, val_theirs)
             if sub_merged:
                 auto_merged[key] = sub_merged
             for conflict in sub_conflicts:
                 conflict['path'] = [key] + conflict['path']
             conflicts.extend(sub_conflicts)
-        else: # Scalar or other type mismatch
+        else: # スカラー値または型不一致
             conflicts.append({
                 "path": [key], "type": "scalar", "base": val_base,
                 "mine": val_mine, "theirs": val_theirs
@@ -320,14 +320,14 @@ class ListConflictWidget(QWidget):
         mine_set = set(conflict.get('mine', []))
         theirs_set = set(conflict.get('theirs', []))
 
-        # Calculate diffs
+        # 差分を計算
         mine_added = sorted(list(mine_set - base_set))
         theirs_added = sorted(list(theirs_set - base_set))
         
-        # Initial merged state: base + all additions from both sides
+        # 初期マージ状態: baseに双方の追加分を反映
         initial_merged_set = base_set.union(mine_added).union(theirs_added)
 
-        # UI components
+        # UI部品
         self.to_add_list = QListWidget()
         self.to_add_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.to_add_list.addItems(sorted(list(set(mine_added + theirs_added))))
@@ -336,11 +336,11 @@ class ListConflictWidget(QWidget):
         self.merged_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.merged_list.addItems(sorted(list(initial_merged_set)))
 
-        # Buttons
+        # ボタン
         add_button = QPushButton("追加 →")
         remove_button = QPushButton("← 削除")
 
-        # Layout
+        # レイアウト
         layout.addWidget(QLabel("<b>追加可能な項目</b><br>(両者の変更で追加された項目)"), 0, 0)
         layout.addWidget(self.to_add_list, 1, 0)
         
@@ -354,7 +354,7 @@ class ListConflictWidget(QWidget):
         layout.addWidget(QLabel("<b>マージ後の最終リスト</b>"), 0, 2)
         layout.addWidget(self.merged_list, 1, 2)
 
-        # Connect signals
+        # シグナルを接続
         add_button.clicked.connect(self.add_items)
         remove_button.clicked.connect(self.remove_items)
 
@@ -386,18 +386,18 @@ class ConflictResolutionWindow(QDialog):
         self.conflicts = conflicts
         self.resolver_widgets = []
 
-        # Main layout for the whole dialog
+        # ダイアログ全体のメインレイアウト
         dialog_layout = QVBoxLayout(self)
 
-        # Top part with the two panels
+        # 上部の2ペイン領域
         main_content_layout = QHBoxLayout()
         
-        # Left: Conflict list
+        # 左: 競合リスト
         self.conflict_list_widget = QListWidget()
         self.conflict_list_widget.setFixedWidth(250)
         main_content_layout.addWidget(self.conflict_list_widget)
 
-        # Right: Stacked widget for resolver UIs
+        # 右: 解決UI用のスタックウィジェット
         self.resolver_stack = QStackedWidget()
         main_content_layout.addWidget(self.resolver_stack)
 
@@ -412,7 +412,7 @@ class ConflictResolutionWindow(QDialog):
                 widget = ListConflictWidget(conflict)
             elif conflict['type'] == 'table_layout':
                 widget = TableLayoutConflictWidget(conflict)
-            else: # Fallback for unhandled types
+            else: # 未対応タイプのフォールバック
                 widget = QLabel(f"未対応の競合タイプ: {conflict['type']}\n{json.dumps(conflict, ensure_ascii=False, indent=2)}")
             
             if widget:
@@ -423,17 +423,17 @@ class ConflictResolutionWindow(QDialog):
         if self.conflict_list_widget.count() > 0:
             self.conflict_list_widget.setCurrentRow(0)
 
-        # Add the top part to the main dialog layout
+        # 上部領域をメインレイアウトへ追加
         dialog_layout.addLayout(main_content_layout)
 
-        # Bottom: OK/Cancel buttons
+        # 下部: OK/キャンセルボタン
         button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         button_box.button(QDialogButtonBox.Ok).setText("マージを確定")
         button_box.button(QDialogButtonBox.Cancel).setText("キャンセル")
         button_box.accepted.connect(self.accept)
         button_box.rejected.connect(self.reject)
         
-        # Add the button box to the main dialog layout
+        # ボタンボックスをメインレイアウトへ追加
         dialog_layout.addWidget(button_box)
 
     def get_all_resolved_data(self):
@@ -481,7 +481,7 @@ class SlotSelectionDialog(QDialog):
         return [item.text() for item in self.list_widget.selectedItems()]
 
 class RequiredSubjectGroupWidget(QGroupBox):
-    """A widget representing a single 'OR' condition group."""
+    """一つのOR条件グループを表すウィジェット。"""
     changed = Signal()
 
     def __init__(self, group_number, master_subjects, parent=None):
@@ -601,7 +601,7 @@ class ArtSubjectDialog(QDialog):
 
         main_layout = QVBoxLayout(self)
 
-        # Header for ART_SUBJECT
+        # ART_SUBJECT用ヘッダ
         art_subject_group = QGroupBox("特別枠の数（1年芸術科目など）")
         art_subject_layout = QFormLayout(art_subject_group)
         self.art_subject_spinbox = QSpinBox()
@@ -609,7 +609,7 @@ class ArtSubjectDialog(QDialog):
         art_subject_layout.addRow("枠数:", self.art_subject_spinbox)
         main_layout.addWidget(art_subject_group)
 
-        # Subject selection part
+        # 教科選択部分
         selection_group = QGroupBox("対象教科の選択")
         selection_layout = QHBoxLayout(selection_group)
         
@@ -640,7 +640,7 @@ class ArtSubjectDialog(QDialog):
         
         main_layout.addWidget(selection_group)
 
-        # OK/Cancel buttons
+        # OK/キャンセルボタン
         button_box = QHBoxLayout()
         self.ok_button = QPushButton("OK")
         self.cancel_button = QPushButton("キャンセル")
@@ -649,7 +649,7 @@ class ArtSubjectDialog(QDialog):
         button_box.addWidget(self.cancel_button)
         main_layout.addLayout(button_box)
 
-        # Connections
+        # 接続処理
         add_button.clicked.connect(self.add_subjects)
         remove_button.clicked.connect(self.remove_subjects)
         self.ok_button.clicked.connect(self.accept)
@@ -658,14 +658,14 @@ class ArtSubjectDialog(QDialog):
         self.load_settings()
 
     def load_settings(self):
-        # Load ART_SUBJECT value
+        # ART_SUBJECTの値を読み込む
         art_subject_value = self.config_data.get("ART_SUBJECT", 0)
         try:
             self.art_subject_spinbox.setValue(int(art_subject_value))
         except (ValueError, TypeError):
             self.art_subject_spinbox.setValue(0)
 
-        # Load SELECTED_ART_SUBJECT
+        # SELECTED_ART_SUBJECTを読み込む
         selected_subjects = self.config_data.get("SELECTED_ART_SUBJECT", [])
         self.selected_list.addItems(sorted(selected_subjects))
         
@@ -711,7 +711,7 @@ class AliasGeneratorDialog(QDialog):
 
         layout.addWidget(QLabel("エイリアスを生成する教科を選択してください:"))
 
-        # Add select/deselect all buttons
+        # 全選択/全解除ボタンを追加
         select_buttons_layout = QHBoxLayout()
         select_all_button = QPushButton("すべて選択")
         deselect_all_button = QPushButton("すべて選択解除")
@@ -1259,7 +1259,7 @@ class MainWindow(QMainWindow):
         # ConfigModelを初期化（新しいアーキテクチャ）
         self.config_model = ConfigModel()
         
-        # --- Attributes for conflict detection ---
+        # --- 競合検出用属性 ---
         self.file_path = None
         self.config_hash = None
         self.original_config_data = {}
@@ -1270,7 +1270,7 @@ class MainWindow(QMainWindow):
         else:
             self.base_path = os.path.abspath(os.path.dirname(sys.argv[0]))
 
-        # Define the single color to use based on the theme.
+        # テーマに応じた単色アイコン色を決定する。
         self.target_color = "#FFFFFF" if self.is_dark_theme() else "#1F1F1F"
 
         self.years = []
@@ -1382,9 +1382,9 @@ class MainWindow(QMainWindow):
         self.load_config()
 
     def is_windows_light_theme():
-        """Checks if the user is using a light theme on Windows."""
+        """Windowsでライトテーマが使われているか確認する。"""
         if sys.platform != "win32":
-            return True # Default to light theme on non-Windows platforms
+            return True # Windows以外ではライトテーマを既定にする
         try:
             import winreg
             key_path = r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
@@ -1392,38 +1392,38 @@ class MainWindow(QMainWindow):
             value, _ = winreg.QueryValueEx(key, "AppsUseLightTheme")
             return value == 1
         except (ImportError, FileNotFoundError, OSError):
-            # In case of any error, default to a light theme.
+            # エラー時はライトテーマに戻す。
             return True
 
     def is_dark_theme(self):
-        """Determines if a dark theme is active, based on config or OS settings."""
+        """configまたはOS設定に基づいてダークテーマか判定する。"""
         ini_theme= darkdetect.theme()
         if ini_theme == "Dark":
             return True
         if ini_theme == "Light":
             return False
-        # If config theme is not set or invalid, fallback to OS detection
+        # configのテーマ設定が未設定または不正ならOS判定へフォールバック
         os_is_light = self.is_windows_light_theme()
         return not os_is_light
 
 
     def changeEvent(self, event):
-        """Handle theme changes dynamically."""
+        """テーマ変更を動的に反映する。"""
         if event.type() == QEvent.ThemeChange:
-             # Update target color for icons
+             # アイコン用の対象色を更新
             self.target_color = "#FFFFFF" if self.is_dark_theme() else "#1F1F1F"
             
-            # Apply button styles
+            # ボタンスタイルを適用
             set_button_styles(QApplication.instance(), is_dark=self.is_dark_theme())
             
-            # Refresh all icons
+            # すべてのアイコンを更新
             self.update_icons()
             
         super().changeEvent(event)
 
     def update_icons(self):
-        """Update all SVG icons with the current target color."""
-        # Update Main Window buttons
+        """現在の対象色ですべてのSVGアイコンを更新する。"""
+        # メインウィンドウのボタンを更新
         if hasattr(self, 'file_button'):
             icon_path_load = os.path.join(self.base_path, "svgs", "load_file.svg")
             new_load_icon = self._create_icon_from_svg_data(icon_path_load, self.target_color)
@@ -1436,7 +1436,7 @@ class MainWindow(QMainWindow):
             if new_save_icon:
                 self.save_button.setIcon(new_save_icon)
 
-        # Update icons in all tabs
+        # 全タブのアイコンを更新
         for i in range(self.stacked_widget.count()):
             tab = self.stacked_widget.widget(i)
             if hasattr(tab, 'update_icons'):
@@ -1493,8 +1493,8 @@ class MainWindow(QMainWindow):
         if hasattr(self, 'table_widget'):
             self.table_widget.clearSelection()
 
-        # All calls to update_..._in_config methods are removed.
-        # Data saving/updating should only happen on explicit save actions.
+        # update_..._in_config系メソッドの呼び出しは廃止済み。
+        # データ保存と更新は明示的な保存操作時だけ行う。
 
         self.stacked_widget.setCurrentIndex(index)
 
@@ -1657,7 +1657,6 @@ class MainWindow(QMainWindow):
         
         current_index = self.tab_list.currentRow()
         if current_index > -1:
-            # This logic might need adjustment, but let's keep it for now
             self.on_tab_changed(-1) 
             self.on_tab_changed(current_index)
             tab_text = self.tab_list.item(current_index).text()
@@ -1679,42 +1678,41 @@ class MainWindow(QMainWindow):
 
     def get_current_ui_config(self):
         """現在のUIの状態をすべて反映したconfigのディクショナリを返します。"""
-        # Create a brand new dictionary to hold the UI's current state.
-        # Start with a deep copy of self.config_data to retain any keys not managed by the UI
-        # and then overwrite/add values based on the current UI state.
+        # UIの現在状態を保持する新しいdictを作成する。
+        # UI管理外のキーを残すため、self.config_dataのdeep copyから開始する
+        # その後、現在のUI状態に基づいて値を上書き・追加する。
         current_ui_state = copy.deepcopy(self.config_data)
 
-        # Call helper methods to populate current_ui_state from UI widgets.
-        # These helper methods will take `current_ui_state` as an argument.
+        # UIウィジェットからcurrent_ui_stateへ値を集める補助メソッドを呼ぶ。
+        # 各補助メソッドはcurrent_ui_stateを引数として受け取る。
 
         self._get_subject_details_from_config_data(current_ui_state)
 
         self.update_master_subjects_in_config(current_ui_state)
         self._get_aliases_from_ui(current_ui_state)
 
-        # Update table layouts and fixed slots (assuming self.config_data is kept current by table_layout methods)
+        # table_layout系メソッドで最新化されたself.config_dataからレイアウトと固定枠を反映
         for key in list(self.config_data.keys()):
             if key.startswith("table_layout") or key.startswith("FIXED_SLOTS") or key.startswith("ALL_SLOTS_"):
                 current_ui_state[key] = copy.deepcopy(self.config_data[key])
         
-        # self.update_table_layout_in_config(current_ui_state) # This call is no longer needed with the copying approach
 
         self.update_general_settings_in_config(current_ui_state)
         self._get_required_subjects_from_ui(current_ui_state)
         self._get_prerequisites_from_ui(current_ui_state)
         self._get_no_together_from_ui(current_ui_state)
         self._get_save_position_from_config_data(current_ui_state)
-        self._rebuild_hierarchy_from_tree_and_update_config(current_ui_state) # New helper for hierarchy
+        self._rebuild_hierarchy_from_tree_and_update_config(current_ui_state) # 階層更新用の補助処理
         self._get_theme_settings_from_ui_and_update_config(current_ui_state)
 
         current_ui_state['EDITOR_FONT_SIZE'] = self.font_size_spinbox.value()
 
-        # Perform cleanup for keys that might exist but should be removed if empty or not applicable
+        # 空または適用外なら削除すべきキーを整理
         keys_to_delete_on_save = [k for k in current_ui_state if k.startswith("YEARS_SUBJECTS_UNITS_") or k in ["YEAR", "1YEARS_SUBJECTS_UNITS", "ABNORMAL_SUBJECTS_UNITS", "LAST_SELECTED_HIERARCHY", "LAST_SELECTED_PATH", "USE_ONLY_NAME"]]
         for key in keys_to_delete_on_save:
             if key in current_ui_state: del current_ui_state[key]
 
-        # Consolidated cleanup for empty config sections
+        # 空の設定セクションをまとめて整理
         for key in list(current_ui_state.keys()):
             if (key.startswith(("REQUIRED_SUBJECTS_", "FIXED_SLOTS", "table_layout", "ALL_SLOTS", "SAVE_POSITION")) and not current_ui_state[key]) or \
                (key in ["SUBJECT_ALIASES", "PREREQUISITE_SUBJECTS", "NO_TOGETHER_SUBJECTS", "YEARS_MESSAGE", "YEARS_HIERARCHY"] and not current_ui_state[key]):
@@ -1730,7 +1728,7 @@ class MainWindow(QMainWindow):
         self.rules_list_widget.clear()
         
         self.details_pane.setVisible(False)
-        self.current_rule_key = None # This might become obsolete, we'll use the selected item directly
+        self.current_rule_key = None # 将来的に不要になる可能性があるため、選択アイテムを直接使う
         
         all_req_keys = [k for k in self.config_data if k.startswith("REQUIRED_SUBJECTS_")]
         
@@ -1739,7 +1737,7 @@ class MainWindow(QMainWindow):
             target_suffix = key.replace("REQUIRED_SUBJECTS_", "")
             rules_in_target = self.config_data.get(key, {})
             for rule_id, rule_data in rules_in_target.items():
-                # Augment the rule_data with its id and target for easier handling
+                # 扱いやすくするためrule_dataにidとtargetを付与
                 full_rule_data = rule_data.copy()
                 full_rule_data['id'] = rule_id
                 full_rule_data['target'] = target_suffix
@@ -1754,7 +1752,7 @@ class MainWindow(QMainWindow):
             display_target = "全体" if target_suffix == "ALL" else target_suffix
             
             item = QListWidgetItem(f"{name} ({display_target})")
-            item.setData(Qt.UserRole, rule_data) # Store the whole dictionary
+            item.setData(Qt.UserRole, rule_data) # dict全体を保持
             self.rules_list_widget.addItem(item)
             
             if reselect_key and (rule_data['id'], rule_data['target']) == reselect_key:
@@ -1812,7 +1810,7 @@ class MainWindow(QMainWindow):
         return file_path
 
     def save_config(self):
-        # First, capture the complete current state of the UI.
+        # まずUIの現在状態を完全に取得する。
         self.config_data = self.get_current_ui_config()
 
         if self.tutorial_mode:
@@ -1835,8 +1833,8 @@ class MainWindow(QMainWindow):
                 QMessageBox.critical(self, "読み込みエラー", f"ファイルの読み込み中に予期せぬエラーが発生しました: {e}")
                 return
 
-        if latest_config: # A conflict was detected
-            # Use self.config_data which was captured at the start
+        if latest_config: # 競合が検出された
+            # 開始時に取得したself.config_dataを使用
             auto_merged, conflicts = diff_and_merge(self.original_config_data, self.config_data, latest_config)
 
             if not conflicts:
@@ -1963,11 +1961,11 @@ class MainWindow(QMainWindow):
                 self.refresh_all_ui_from_config_data()
                 QMessageBox.information(self, "統合完了", """「その他設定」の競合は自動的に解決され、設定が統合されました。
 内容を確認して保存してください。""" )
-        # perform_save will now save the final state of self.config_data
+        # perform_saveはself.config_dataの最終状態を保存する
         self.perform_save()
 
     def save_config_as(self):
-        """Saves the current configuration to a new file."""
+        """現在の設定を別ファイルへ保存する。"""
         self.config_data = self.get_current_ui_config()
 
         if self.tutorial_mode:
@@ -1988,8 +1986,8 @@ class MainWindow(QMainWindow):
         self.perform_save()
 
     def perform_save(self):
-        """Writes the current self.config_data to disk after cleanup."""
-        # NOTE: UI data should be gathered into self.config_data BEFORE calling this.
+        """整理後のself.config_dataをディスクへ書き込む。"""
+        # 注意: 呼び出し前にUIデータをself.config_dataへ集約しておく。
         
         # YEARS_SUBJECTS_UNITS_キーをconfig_model._dataからconfig_dataにコピー
         # (InitialUnitsDialogで設定された値はconfig_model._dataにのみ保存されるため)
@@ -1998,12 +1996,11 @@ class MainWindow(QMainWindow):
                 if key.startswith("YEARS_SUBJECTS_UNITS_"):
                     self.config_data[key] = self.config_model._data[key]
         
-        # DEBUG: Check YEARS_SUBJECTS_UNITS_ keys before cleanup
         years_keys = [k for k in self.config_data if k.startswith("YEARS_SUBJECTS_UNITS_")]
         print(f"DEBUG perform_save: YEARS_SUBJECTS_UNITS_ keys in config_data = {years_keys}")
 
-        # --- Cleanup ---
-        # Note: YEARS_SUBJECTS_UNITS_ keys should NOT be deleted - they store initial units settings
+        # --- クリーンアップ ---
+        # YEARS_SUBJECTS_UNITS_キーは初期単位設定を保持するため削除しない。
         keys_to_delete = [k for k in self.config_data if k in ["YEAR", "1YEARS_SUBJECTS_UNITS", "ABNORMAL_SUBJECTS_UNITS", "LAST_SELECTED_HIERARCHY", "LAST_SELECTED_PATH", "USE_ONLY_NAME"]]
         for key in keys_to_delete:
             if key in self.config_data: del self.config_data[key]
@@ -2024,12 +2021,12 @@ class MainWindow(QMainWindow):
         except Exception as e:
             print(f"バックアップ作成に失敗（続行します）: {e}")
 
-        # Write the updated config_data to the file
+        # 更新済みconfig_dataをファイルへ書き込む
         try:
             with open(self.file_path, "w", encoding="utf-8") as f:
                 json.dump(self.config_data, f, indent=2, ensure_ascii=False)
             
-            # After a successful save, update the hash and original data
+            # 保存成功後にハッシュと元データを更新
             self.config_hash = calculate_sha256(self.file_path)
             self.original_config_data = copy.deepcopy(self.config_data)
             QMessageBox.information(self, "成功", "設定を保存しました。" )
@@ -2217,8 +2214,8 @@ class MainWindow(QMainWindow):
 
     def _pre_populate_all_slots(self):
         """
-        Populates the ALL_SLOTS_{year} config entries based on the table_layout{year} data.
-        This should be called at startup to ensure the data is available for all tabs.
+        table_layout{year}をもとにALL_SLOTS_{year}を事前生成する。
+        全タブで必要なデータを確保するため起動時に呼び出す。
         """
         for key in list(self.config_data.keys()):
             if key.startswith("table_layout"):
@@ -2273,7 +2270,7 @@ class MainWindow(QMainWindow):
             self.master_subject_list.addItems(sorted_subjects)
 
     def soft_reload_subject_lists(self):
-        """Reloads UI elements that list subjects, without resetting major selections like the current year."""
+        """現在年次など主要な選択を維持したまま教科リスト系UIを再読み込みする。"""
         self.populate_alias_subject_list()
         self.populate_prerequisite_parent_list()
         self.update_details_subject_lists()
@@ -2318,42 +2315,41 @@ class MainWindow(QMainWindow):
         config_dict["MASTER_SUBJECTS"] = sorted(list(set(subjects)))
 
     def rename_subject_in_config(self, old_name, new_name):
-        # This is a complex operation that needs to touch many parts of the config
-        # For simplicity, we'll just update the master list and rely on other parts
-        # of the UI to handle the rename gracefully or require manual correction.
-        # For now, we just do this:
+        # 教科名変更は設定内の複数箇所に影響する処理。
+        # ここではマスタリストを更新し、関連項目は下の処理で更新する。
+        # UI側で追従できない箇所は手動修正が必要になる可能性がある。
         master = self.config_data.get("MASTER_SUBJECTS", [])
         if old_name in master:
             master.remove(old_name)
             master.append(new_name)
             self.config_data["MASTER_SUBJECTS"] = sorted(master)
         
-        # Also update aliases
+        # 別名も更新
         aliases = self.config_data.get("SUBJECT_ALIASES", {})
         if old_name in aliases:
             aliases[new_name] = aliases.pop(old_name)
 
     def remove_subject_from_config(self, subject_name):
-        """Recursively removes a subject from various parts of the config."""
-        # Create a copy of keys to iterate over, as we might modify the dict
+        """config内の関連箇所から教科を再帰的に削除する。"""
+        # dictを変更しながら走査するためキーのコピーを使う
         for key in list(self.config_data.keys()):
-            # Handle simple dicts like SUBJECT_ALIASES, PREREQUISITE_SUBJECTS (as parent)
+            # SUBJECT_ALIASESや親側のPREREQUISITE_SUBJECTSなど単純なdictを処理
             if key in ["SUBJECT_ALIASES", "PREREQUISITE_SUBJECTS"]:
                 if subject_name in self.config_data.get(key, {}):
                     del self.config_data[key][subject_name]
 
-            # Handle year-suffixed dicts of dicts (old format)
+            # 年次サフィックス付きdictのdict（旧形式）を処理
             if key.startswith(("subject_number", "subject_slots_base", "ABNORMAL_SUBJECTS_UNITS")):
                 if isinstance(self.config_data.get(key), dict) and subject_name in self.config_data[key]:
                     del self.config_data[key][subject_name]
             
-            # Handle year-suffixed dicts of lists (new format)
+            # 年次サフィックス付きdictのlist（新形式）を処理
             if key.startswith(("subject_number", "subject_slots_base")):
                  if isinstance(self.config_data.get(key), list):
                      self.config_data[key] = [item for item in self.config_data[key] if item.get("name") != subject_name]
 
 
-        # Handle nested lists in PREREQUISITE_SUBJECTS (as child)
+        # 子側のPREREQUISITE_SUBJECTS内ネストリストを処理
         prereqs = self.config_data.get("PREREQUISITE_SUBJECTS", {})
         for parent in list(prereqs.keys()):
             if subject_name in prereqs.get(parent, []):
@@ -2361,7 +2357,7 @@ class MainWindow(QMainWindow):
                 if not prereqs[parent]:
                     del prereqs[parent]
 
-        # Handle REQUIRED_SUBJECTS
+        # REQUIRED_SUBJECTSを処理
         for key in list(self.config_data.keys()):
             if key.startswith("REQUIRED_SUBJECTS_"):
                 rules = self.config_data.get(key, {})
@@ -2371,16 +2367,16 @@ class MainWindow(QMainWindow):
                             if "subjects" in condition and subject_name in condition.get("subjects", []):
                                 condition["subjects"].remove(subject_name)
 
-        # Handle NO_TOGETHER_SUBJECTS
+        # NO_TOGETHER_SUBJECTSを処理
         if "NO_TOGETHER_SUBJECTS" in self.config_data:
             new_no_together = []
             for group in self.config_data.get("NO_TOGETHER_SUBJECTS", []):
                 new_group = [s for s in group if s != subject_name]
-                if len(new_group) > 1: # A group with 1 or 0 subjects is meaningless
+                if len(new_group) > 1: # 1件以下のグループは意味を持たない
                     new_no_together.append(new_group)
             self.config_data["NO_TOGETHER_SUBJECTS"] = new_no_together
 
-        # Handle FIXED_SLOTS
+        # FIXED_SLOTSを処理
         for key in list(self.config_data.keys()):
             if key.startswith("FIXED_SLOTS"):
                 slots_to_del = [slot for slot, subj in self.config_data.get(key, {}).items() if subj == subject_name]
@@ -2391,7 +2387,7 @@ class MainWindow(QMainWindow):
         reply = QMessageBox.question(self, "確認", "教科マスタリストを50音順に並び替えますか？\nこの操作は保存され、元に戻せません。", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
             items = [self.master_subject_list.item(i).text() for i in range(self.master_subject_list.count())]
-            items.sort(key=self.japanese_sort_key) # Use custom sort key
+            items.sort(key=self.japanese_sort_key) # 独自のソートキーを使う
             self.master_subject_list.clear()
             self.master_subject_list.addItems(items)
 
@@ -2477,7 +2473,7 @@ class MainWindow(QMainWindow):
             del config_dict["SUBJECT_ALIASES"]
 
     def on_alias_subject_selected(self, index):
-        # No longer need to save on selection change.
+        # 選択変更時の保存は不要。
         item = self.alias_subject_list.item(index)
         if not item:
             self.current_selected_subject_for_alias = None
@@ -2542,7 +2538,7 @@ class MainWindow(QMainWindow):
         for subject in subjects:
             try:
                 if subject not in self.config_data["SUBJECT_ALIASES"]:
-                    self.config_data["SUBJECT_ALIASES"].setdefault(subject, []) # Ensure list exists
+                    self.config_data["SUBJECT_ALIASES"].setdefault(subject, []) # リストの存在を保証
 
                 existing_aliases = set(self.config_data["SUBJECT_ALIASES"].get(subject, []))
 
@@ -2680,7 +2676,7 @@ class MainWindow(QMainWindow):
 
         master_subjects = self.config_data.get("MASTER_SUBJECTS", [])
         
-        # Consolidate all subject data for the current year
+        # 現在年次の教科データを集約
         all_subject_details = {}
         
         num_key = f"subject_number{year}"
@@ -2711,7 +2707,7 @@ class MainWindow(QMainWindow):
             if item.get("name") in all_subject_details:
                 all_subject_details[item["name"]]["slots_base_data"] = item.get("data", [])
 
-        # Populate lists and attach data
+        # リストを構築しデータを付与
         assigned_subjects_set = set()
         for subject, details in all_subject_details.items():
             is_assigned = details["number_data"] or details["slots_base_data"]
@@ -2727,12 +2723,12 @@ class MainWindow(QMainWindow):
             else:
                 self.unassigned_subjects_list.addItem(item)
         
-        # Restore selection
+        # 選択状態を復元
         self.assigned_subjects_list.blockSignals(False)
         self.unassigned_subjects_list.blockSignals(False)
 
         if current_subject:
-            # This part needs to find the item in either list and select it
+            # どちらかのリストから対象アイテムを探して選択する
             # スクロール位置を維持するためblockSignalsを使用
             for i in range(self.assigned_subjects_list.count()):
                 if self.assigned_subjects_list.item(i).text() == current_subject:
@@ -2908,7 +2904,7 @@ class MainWindow(QMainWindow):
             self.details_number_widgets[slot] = line_edit
 
     def _get_selected_subject_item(self):
-        """Gets the currently selected subject item from either the assigned or unassigned list."""
+        """割り当て済み/未割り当てリストから現在選択中の教科アイテムを取得する。"""
         assigned_item = self.assigned_subjects_list.currentItem()
         if assigned_item and self.assigned_subjects_list.hasFocus():
             return assigned_item
@@ -2917,7 +2913,7 @@ class MainWindow(QMainWindow):
         if unassigned_item and self.unassigned_subjects_list.hasFocus():
             return unassigned_item
             
-        # Fallback if focus is not clear, checking assigned first
+        # フォーカスが不明な場合は割り当て済みリストを優先して確認
         if assigned_item:
             return assigned_item
         if unassigned_item:
@@ -2929,7 +2925,7 @@ class MainWindow(QMainWindow):
         subject = self.current_details_context.get("subject")
         year = self.current_details_context.get("year")
 
-        # --- Clear UI ---
+        # --- UIをクリア ---
         while self.number_layout.count():
             item = self.number_layout.takeAt(0)
             if item.widget():
@@ -2938,7 +2934,7 @@ class MainWindow(QMainWindow):
         self.slots_base_table.clearContents()
         self.slots_base_table.setRowCount(0)
 
-        # --- Get the selected item and its data ---
+        # --- 選択アイテムとデータを取得 ---
         selected_item = self._get_selected_subject_item()
         if not subject or not year or not selected_item:
             self.number_group.setTitle("スロット番号 (subject_number)")
@@ -2950,14 +2946,14 @@ class MainWindow(QMainWindow):
 
         subject_details = selected_item.data(Qt.UserRole)
         if not subject_details:
-             subject_details = {} # Should not happen, but a safeguard
+             subject_details = {} # 通常は起きないが安全策として処理
         
-        # --- Populate UI from item data ---
+        # --- アイテムデータからUIへ反映 ---
         self.number_group.setTitle(f"スロット番号 (subject_number_{year}) - {subject}")
         self.slots_base_group.setTitle(f"スロットグループ (subject_slots_base_{year}) - {subject}")
         self.final_units_input.setEnabled(True)
         
-        normal_units = self._get_normal_units(subject, year) # This method still reads from config, which is fine for this calculation
+        normal_units = self._get_normal_units(subject, year) # この計算ではconfigから読み取って問題ない
         self.normal_units_label.setText(f"{normal_units} 単位")
         
         unit_adjustment = subject_details.get("abnormal_units_adjustment", 0)
@@ -2973,7 +2969,7 @@ class MainWindow(QMainWindow):
         for group in current_subject_slots_data:
             all_slots_for_subject.update(group)
 
-        # --- Update number/name area ---
+        # --- 番号/名前エリアを更新 ---
         for slot in sorted(list(all_slots_for_subject)):
             line_edit = QLineEdit()
             number = current_subject_num_data.get(slot, "")
@@ -2982,7 +2978,7 @@ class MainWindow(QMainWindow):
             self.number_layout.addRow(QLabel(slot), line_edit)
             self.details_number_widgets[slot] = line_edit
 
-        # --- Update slots_base table ---
+        # --- slots_baseテーブルを更新 ---
         if current_subject_slots_data:
             self.slots_base_table.setRowCount(len(current_subject_slots_data))
             for r, group in enumerate(current_subject_slots_data):
@@ -2992,7 +2988,7 @@ class MainWindow(QMainWindow):
                     self.slots_base_table.setItem(r, c, QTableWidgetItem(slot))
 
     def _get_selected_subject_from_lists(self):
-        """Gets the currently selected subject from either the assigned or unassigned list."""
+        """割り当て済み/未割り当てリストから現在選択中の教科名を取得する。"""
         assigned_item = self.assigned_subjects_list.currentItem()
         if assigned_item and self.assigned_subjects_list.hasFocus():
             return assigned_item.text()
@@ -3001,7 +2997,7 @@ class MainWindow(QMainWindow):
         if unassigned_item and self.unassigned_subjects_list.hasFocus():
             return unassigned_item.text()
             
-        # Fallback if focus is not clear
+        # フォーカスが不明な場合のフォールバック
         if assigned_item:
             return assigned_item.text()
         if unassigned_item:
@@ -3011,7 +3007,7 @@ class MainWindow(QMainWindow):
 
     def _get_current_details_from_widgets(self):
         """
-        Gathers details for the currently displayed subject from the UI widgets.
+        現在表示中の教科詳細をUIウィジェットから収集する。
         """
         details = {
             "number_data": {},
@@ -3019,13 +3015,13 @@ class MainWindow(QMainWindow):
             "abnormal_units_adjustment": 0
         }
 
-        # 1. Gather number_data from the QLineEdit widgets
+        # 1. QLineEditウィジェットからnumber_dataを収集
         for slot, widget in self.details_number_widgets.items():
             value = widget.text().strip()
             if value:
                 details["number_data"][slot] = value
 
-        # 2. Gather slots_base_data from the QTableWidget
+        # 2. QTableWidgetからslots_base_dataを収集
         slots_data = []
         for r in range(self.slots_base_table.rowCount()):
             row_data = []
@@ -3037,7 +3033,7 @@ class MainWindow(QMainWindow):
                 slots_data.append(sorted(row_data))
         details["slots_base_data"] = sorted(slots_data)
 
-        # 3. Calculate abnormal_units_adjustment
+        # 3. abnormal_units_adjustmentを計算
         subject = self.current_details_context.get("subject")
         year = self.current_details_context.get("year")
         if subject and year:
@@ -3049,30 +3045,30 @@ class MainWindow(QMainWindow):
 
     def _get_subject_details_from_config_data(self, config_dict):
         """
-        Gathers subject details for the currently selected year from the UI,
-        and populates the config_dict. This is called on save.
+        現在選択中の年次について、UIから教科詳細を収集してconfig_dictへ反映する。
+        保存時に呼び出される。
         """
         year = self.current_details_context.get("year")
         if not year:
-            # If no year is selected in the details tab, we copy existing data to avoid losing it.
+            # 詳細タブで年次未選択の場合は、データ欠落防止のため既存データをコピーする。
             for key in list(self.config_data.keys()):
                 if key.startswith(("subject_number", "subject_slots_base", "ABNORMAL_SUBJECTS_UNITS")):
                     config_dict[key] = copy.deepcopy(self.config_data.get(key))
             return
 
-        # 1. Collect details for all subjects for the current year from the UI.
+        # 1. 現在年次の全教科詳細をUIから収集する。
         all_subject_details_for_year = {}
         
-        # Helper to process a list widget (assigned or unassigned)
+        # リストウィジェット（割り当て済み/未割り当て）を処理する補助関数
         def collect_from_list(list_widget):
             for i in range(list_widget.count()):
                 item = list_widget.item(i)
                 subject_name = item.text()
-                # If this is the currently edited subject, get fresh data from widgets.
+                # 現在編集中の教科ならウィジェットから最新データを取得する。
                 if subject_name == self.current_details_context.get("subject"):
                     all_subject_details_for_year[subject_name] = self._get_current_details_from_widgets()
                 else:
-                    # Otherwise, use the data stored on the QListWidgetItem.
+                    # それ以外はQListWidgetItemに保存済みのデータを使う。
                     stored_data = item.data(Qt.UserRole)
                     if stored_data:
                         all_subject_details_for_year[subject_name] = stored_data
@@ -3080,7 +3076,7 @@ class MainWindow(QMainWindow):
         collect_from_list(self.assigned_subjects_list)
         collect_from_list(self.unassigned_subjects_list)
 
-        # 2. Rebuild the config data structures for the current year.
+        # 2. 現在年次のconfigデータ構造を再構築する。
         num_key = f"subject_number{year}"
         slots_key = f"subject_slots_base{year}"
         abnormal_key = f"ABNORMAL_SUBJECTS_UNITS{year}"
@@ -3089,7 +3085,7 @@ class MainWindow(QMainWindow):
         slots_data_list = []
         abnormal_data_dict = {}
 
-        # Use the order from assigned_subjects_list as the definitive order for assigned subjects
+        # 割り当て済み教科の確定順序としてassigned_subjects_listの順序を使う
         for i in range(self.assigned_subjects_list.count()):
             subject_name = self.assigned_subjects_list.item(i).text()
             details = all_subject_details_for_year.get(subject_name)
@@ -3100,12 +3096,12 @@ class MainWindow(QMainWindow):
             if details.get("slots_base_data"):
                 slots_data_list.append({"name": subject_name, "data": details["slots_base_data"]})
 
-        # Process abnormal units for all subjects
+        # 全教科の単位調整を処理
         for subject_name, details in all_subject_details_for_year.items():
              if details and details.get("abnormal_units_adjustment") != 0:
                 abnormal_data_dict[subject_name] = details["abnormal_units_adjustment"]
 
-        # Update config_dict for the current year
+        # 現在年次のconfig_dictを更新
         if num_data_list: config_dict[num_key] = num_data_list
         elif num_key in config_dict: del config_dict[num_key]
 
@@ -3115,9 +3111,9 @@ class MainWindow(QMainWindow):
         if abnormal_data_dict: config_dict[abnormal_key] = abnormal_data_dict
         elif abnormal_key in config_dict: del config_dict[abnormal_key]
 
-        # 3. Preserve data for other years by copying it from self.config_data.
+        # 3. 他年次のデータはself.config_dataからコピーして保持する。
         for y in self.years:
-            if y == year: continue  # Skip the current year as we just processed it
+            if y == year: continue  # 現在年次は処理済みのためスキップ
             
             other_num_key = f"subject_number{y}"
             other_slots_key = f"subject_slots_base{y}"
@@ -3152,7 +3148,7 @@ class MainWindow(QMainWindow):
             self.assigned_subjects_list.addItems(items)
 
     def on_assigned_subjects_reordered(self, parent, start, end, destination, row):
-        pass # No longer update config_data interactively
+        pass # 並び替え時にconfig_dataは即時更新しない
 
     def add_slot_group(self):
         year_text = self.current_details_context.get("year")
@@ -3207,7 +3203,7 @@ class MainWindow(QMainWindow):
         """スロットレイアウト設定タブを作成（LayoutTabクラスを使用）"""
         from config_editor.tabs import LayoutTab
         
-        # LayoutTabクラスをインスタンス化
+        # レイアウトTabクラスをインスタンス化
         self.layout_tab_widget = LayoutTab(
             config_model=self.config_model,
             parent=self,
@@ -3373,7 +3369,7 @@ class MainWindow(QMainWindow):
         if hierarchy:
             top_level_items = sorted(list(hierarchy.keys()))
         else:
-            # Fallback: Infer years from table_layout keys if hierarchy is missing
+            # フォールバック: 階層情報がない場合はtable_layoutキーから年次を推定
             inferred_years = set()
             for key in self.config_data.keys():
                 if key.startswith("table_layout"):
@@ -3382,10 +3378,10 @@ class MainWindow(QMainWindow):
                         inferred_years.add(year_str)
             
             if inferred_years:
-                # If we inferred years, treat them as a single-level hierarchy
-                # and reconstruct a simple hierarchy to fit the existing logic.
+                # 推定した年次は単一階層として扱う
+                # 既存ロジックに合わせて単純な階層へ再構築する。
                 hierarchy = {year: {} for year in inferred_years}
-                self.config_data["YEARS_HIERARCHY"] = hierarchy # Store it back for consistency
+                self.config_data["YEARS_HIERARCHY"] = hierarchy # 整合性のため設定へ戻す
                 top_level_items = sorted(list(hierarchy.keys()))
 
         first_combo = QComboBox()
@@ -3483,7 +3479,7 @@ class MainWindow(QMainWindow):
         year_str = self.current_selected_table_layout_key
         if not year_str: return
         
-        # Try fetching data with and without a leading underscore for compatibility
+        # 互換性のため先頭アンダースコアあり/なしの両方でデータを取得する
         layout_key_no_underscore = f"table_layout{year_str}"
         layout_key_with_underscore = f"table_layout_{year_str}"
         layout_data = self.config_data.get(layout_key_no_underscore)
@@ -3501,11 +3497,11 @@ class MainWindow(QMainWindow):
         self.table_widget.setRowCount(rows)
         self.table_widget.setColumnCount(cols)
 
-        # Theme-aware colors
+        # テーマ対応色
         color_empty_slot = QApplication.palette().color(QPalette.AlternateBase)
         
         color_fixed_slot = QApplication.palette().color(QPalette.Highlight)
-        color_fixed_slot.setAlpha(60) # Use a semi-transparent highlight
+        color_fixed_slot.setAlpha(60) # 半透明の強調表示を使う
 
         for i, row_data in enumerate(layout_data):
             for j, cell_data in enumerate(row_data):
@@ -3520,12 +3516,12 @@ class MainWindow(QMainWindow):
                 elif slot_name in fixed_slots:
                     item.setText(f"{slot_name}\n[{fixed_slots[slot_name]}]")
                     item.setBackground(color_fixed_slot)
-                    # Text color for fixed slots should contrast with the highlight
+                    # 固定枠の文字色は強調色とコントラストを取る
                     item.setForeground(QApplication.palette().color(QPalette.Text))
                     item.setFlags(item.flags() & ~Qt.ItemIsEditable)
                 else:
                     item.setText(slot_name)
-                    # No background color set for normal items, uses theme default
+                    # 通常項目には背景色を指定せず、テーマ既定値を使う
                     item.setFlags(item.flags() | Qt.ItemIsEditable)
                 
                 self.table_widget.setItem(i, j, item)
@@ -3660,11 +3656,11 @@ class MainWindow(QMainWindow):
             btn_light = self.theme_widgets.get(f"{key}_light")
             btn_dark = self.theme_widgets.get(f"{key}_dark")
             if btn_light:
-                # Light mode buttons use black text
+                # ライトモードのボタンは黒文字を使う
                 btn_light.setStyleSheet(f"background-color: {light_color}; color: #000000;")
                 btn_light.setProperty("color_val", light_color)
             if btn_dark:
-                # Dark mode buttons use white text
+                # ダークモードのボタンは白文字を使う
                 btn_dark.setStyleSheet(f"background-color: {dark_color}; color: #ffffff;")
                 btn_dark.setProperty("color_val", dark_color)
 
@@ -3678,7 +3674,7 @@ class MainWindow(QMainWindow):
             else:
                 button.setStyleSheet(f"background-color: {hex_color}; color: #ffffff;")
             button.setProperty("color_val", hex_color)
-            # do not override the other mode, only set this one
+            # もう一方のモードは上書きせず、このモードだけ設定する
 
     def _get_theme_settings_from_ui_and_update_config(self, config_dict):
         if not hasattr(self, 'theme_widgets'): return
@@ -3783,7 +3779,7 @@ class MainWindow(QMainWindow):
 
         slider = QSlider(Qt.Horizontal)
         slider.setRange(s_range[0], s_range[1])
-        self.general_settings_widgets[key_spin + "_slider"] = slider # Add slider to widgets
+        self.general_settings_widgets[key_spin + "_slider"] = slider # スライダーをウィジェット辞書へ追加
         row_layout.addWidget(slider)
 
         checkbox = QCheckBox("有効化")
@@ -3869,26 +3865,26 @@ class MainWindow(QMainWindow):
             config_dict["GENERAL_SETTINGS"] = {}
 
         for key, widget in self.general_settings_widgets.items():
-            if "_slider" in key: continue # Sliders are linked to spinboxes, no need to save separately
+            if "_slider" in key: continue # スライダーはspinboxと連動するため個別保存は不要
             if isinstance(widget, QSpinBox):
                 config_dict["GENERAL_SETTINGS"][key] = widget.value()
             elif isinstance(widget, QCheckBox):
                 config_dict["GENERAL_SETTINGS"][key] = widget.isChecked()
             elif isinstance(widget, QLineEdit):
-                # Attempt to preserve original type if possible, otherwise save as string
+                # 可能なら元の型を保持し、無理なら文字列として保存
                 original_value = self.config_data.get("GENERAL_SETTINGS", {}).get(key)
                 try:
                     if isinstance(original_value, int):
                         config_dict["GENERAL_SETTINGS"][key] = int(widget.text())
                     elif isinstance(original_value, float):
                         config_dict["GENERAL_SETTINGS"][key] = float(widget.text())
-                    else: # Default to string
+                    else: # 既定では文字列として扱う
                         config_dict["GENERAL_SETTINGS"][key] = widget.text()
-                except (ValueError, TypeError): # Fallback if conversion fails
+                except (ValueError, TypeError): # 変換失敗時のフォールバック
                     config_dict["GENERAL_SETTINGS"][key] = widget.text()
-            # If a widget was meant to hold a value but now it's empty, remove its entry from config_dict
+            # 値を持つべきウィジェットが空ならconfig_dictから削除する
             if (isinstance(widget, QLineEdit) and not widget.text()) or \
-               (isinstance(widget, QSpinBox) and widget.value() == 0 and key not in ["MIN_SUBJECT_COUNT", "MAX_SUBJECT_COUNT", "MIN_SUBJECT_COUNT_UNITS", "MAX_SUBJECT_COUNT_UNITS"]): # Some spinboxes can legitimately be 0
+               (isinstance(widget, QSpinBox) and widget.value() == 0 and key not in ["MIN_SUBJECT_COUNT", "MAX_SUBJECT_COUNT", "MIN_SUBJECT_COUNT_UNITS", "MAX_SUBJECT_COUNT_UNITS"]): # 0が有効値のspinboxもある
                 if key in config_dict["GENERAL_SETTINGS"]:
                     del config_dict["GENERAL_SETTINGS"][key]
 
@@ -3945,7 +3941,7 @@ class MainWindow(QMainWindow):
         form_layout = QFormLayout()
         self.rule_name_edit = QLineEdit()
         self.rule_target_combo = QComboBox()
-        # Items are now populated by reload_all_selectors
+        # 項目はreload_all_selectorsで再構築される
         self.rule_color_button = QPushButton("カラーを選択")
         self.rule_color_button.clicked.connect(self.select_rule_color)
         form_layout.addRow("ルール名:", self.rule_name_edit)
@@ -4023,11 +4019,11 @@ class MainWindow(QMainWindow):
                 child.widget().deleteLater()
 
     def on_rule_selected(self, index):
-        # No longer save on selection change
+        # 選択変更時には保存しない
         if index < 0:
             self.details_pane.setVisible(False)
             self.details_pane.setEnabled(False)
-            self.current_rule_key = None # Keep for now, might be useful for re-selection
+            self.current_rule_key = None # 再選択で使う可能性があるため保持する
             return
 
         item = self.rules_list_widget.item(index)
@@ -4038,7 +4034,7 @@ class MainWindow(QMainWindow):
         if not rule_data:
             return
 
-        # Use the stored 'id' and 'target' from the rule_data itself
+        # rule_data自体に保存されたidとtargetを使う
         self.current_rule_key = (rule_data.get('id'), rule_data.get('target'))
 
         self._clear_details_pane()
@@ -4080,7 +4076,7 @@ class MainWindow(QMainWindow):
         if not (ok and rule_name):
             return
 
-        new_id = self.generate_new_rule_id() # Still useful to have unique IDs
+        new_id = self.generate_new_rule_id() # 一意IDは引き続き有用
 
         new_rule_data = {
             "id": new_id,
@@ -4107,7 +4103,7 @@ class MainWindow(QMainWindow):
         reply = QMessageBox.question(self, "確認", f"ルール「{name_to_delete}」を削除しますか？", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
             self.rules_list_widget.takeItem(self.rules_list_widget.row(current_item))
-            # No need to repopulate, just hide the details pane
+            # 再構築せず詳細ペインだけ非表示にする
             self.details_pane.setVisible(False)
             self.current_rule_key = None
 
@@ -4125,15 +4121,15 @@ class MainWindow(QMainWindow):
         if not current_item or not self.details_pane.isVisible():
             return
 
-        # Get existing data from the item
+        # アイテムから既存データを取得
         rule_data = current_item.data(Qt.UserRole)
         if not rule_data:
-             return # Should not happen if item is selected
+             return # アイテム選択済みなら通常は起きない
 
-        # Read all UI elements in the details pane
+        # 詳細ペイン内の全UI要素を読み取る
         new_name = self.rule_name_edit.text()
         if not new_name:
-            # Maybe show a warning, but for now just return
+            # 警告表示も考えられるが、ここでは戻る
             return
             
         current_combo_text = self.rule_target_combo.currentText()
@@ -4146,25 +4142,25 @@ class MainWindow(QMainWindow):
             if widget:
                 new_conditions.append(widget.get_data())
 
-        # Update the dictionary
+        # dictを更新
         rule_data['name'] = new_name
         rule_data['target'] = new_target_key
         rule_data['color'] = new_color
         rule_data['conditions'] = new_conditions
 
-        # Write the updated dictionary back to the item
+        # 更新済みdictをアイテムへ戻す
         current_item.setData(Qt.UserRole, rule_data)
         
-        # Update the display text of the item
+        # アイテムの表示文字列を更新
         current_item.setText(f"{new_name} ({current_combo_text})")
 
     def _get_required_subjects_from_ui(self, config_dict):
-        # Clear all existing required subjects data first
+        # 既存の必須教科データを先にクリア
         for key in list(config_dict.keys()):
             if key.startswith("REQUIRED_SUBJECTS_"):
                 del config_dict[key]
 
-        # Rebuild from the UI list
+        # UIリストから再構築
         for i in range(self.rules_list_widget.count()):
             item = self.rules_list_widget.item(i)
             rule_data = item.data(Qt.UserRole)
@@ -4174,7 +4170,7 @@ class MainWindow(QMainWindow):
             target = rule_data.get('target', 'ALL')
             rule_id = rule_data.get('id')
             
-            # Data to be saved doesn't need the id or target keys inside it
+            # 保存データ内にはidやtargetキーを含めない
             saved_data = {
                 "name": rule_data.get("name"),
                 "color": rule_data.get("color"),
@@ -4263,7 +4259,7 @@ class MainWindow(QMainWindow):
         self.prereq_selection_changed.emit()
 
     def add_new_prereq_rule(self):
-        # Determine which subjects are already in the prereq list
+        # 前提教科リストに登録済みの教科を判定
         existing_parents = set()
         for i in range(self.prereq_parent_list.count()):
             existing_parents.add(self.prereq_parent_list.item(i).text())
@@ -4281,7 +4277,7 @@ class MainWindow(QMainWindow):
         
         if ok and parent_subject:
             item = QListWidgetItem(parent_subject)
-            item.setData(Qt.UserRole, []) # Start with an empty list of children
+            item.setData(Qt.UserRole, []) # 子教科リストは空から始める
             self.prereq_parent_list.addItem(item)
             self.prereq_parent_list.setCurrentItem(item)
 
@@ -4295,7 +4291,7 @@ class MainWindow(QMainWindow):
         reply = QMessageBox.question(self, "確認", f"親教科「{parent_subject}」とその前提教科設定を削除しますか？", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         
         if reply == QMessageBox.Yes:
-            # No need to touch self.config_data. Just remove the item from the UI list.
+            # self.config_dataには触れず、UIリストから項目だけ削除する。
             self.prereq_parent_list.takeItem(self.prereq_parent_list.row(current_item))
             self.prereq_details_pane.setVisible(False)
             self.current_prereq_parent = None
@@ -4450,7 +4446,7 @@ class MainWindow(QMainWindow):
         for item in items_to_move:
             self.no_together_assigned_list.addItem(item.text())
         
-        # It's safer to get the rows to remove first, then remove them
+        # 削除対象行を先に取得してから削除する方が安全
         rows_to_remove = sorted([self.no_together_available_list.row(item) for item in items_to_move], reverse=True)
         for row in rows_to_remove:
             self.no_together_available_list.takeItem(row)
@@ -4483,7 +4479,7 @@ class MainWindow(QMainWindow):
             item = self.no_together_groups_list.item(i)
             if item:
                 group_data = item.data(Qt.UserRole)
-                if group_data: # Only add non-empty groups
+                if group_data: # 空でないグループだけ追加
                     all_groups.append(sorted(group_data))
         
         if all_groups:
@@ -4758,10 +4754,10 @@ class MainWindow(QMainWindow):
 
         slots_key = f"subject_slots_base{year_suffix}"
         
-        # Corrected retrieval for slot_groups
+        # slot_groupsの取得を補正
         all_subject_slots_data = self.config_data.get(slots_key, [])
         
-        # Convert old dict format to new list format for safety, if not already done
+        # 未変換の場合に備えて旧dict形式を新list形式へ変換
         if isinstance(all_subject_slots_data, dict):
             all_subject_slots_data = [{"name": s, "data": d} for s, d in all_subject_slots_data.items()]
 
@@ -4810,8 +4806,8 @@ class MainWindow(QMainWindow):
             self.year_tree_widget.expandAll()
 
     def get_config_key_for_abnormal_units(self, year_suffix_or_year_name):
-        # This function now expects a year SUFFIX (e.g., "2", "3") or a year NAME from which it can derive the suffix.
-        # It should not be called with "FIXED".
+        # 年次サフィックス（例: "2", "3"）またはサフィックスを導ける年次名を受け取る。
+        # "FIXED"では呼び出さない。
         year_suffix = year_suffix_or_year_name
         return f"ABNORMAL_SUBJECTS_UNITS{year_suffix}"
 
@@ -4837,18 +4833,18 @@ class MainWindow(QMainWindow):
 
         if data_node is None:
             QMessageBox.critical(self, "エラー", "リネーム対象の親データが見つかりませんでした。" )
-            item.setText(column, old_text) # Revert
+            item.setText(column, old_text) # 元に戻す
             return
 
         if new_text in data_node:
             QMessageBox.warning(self, "重複", "同じ階層にその名前の項目が既に存在します。" )
-            item.setText(column, old_text) # Revert text
+            item.setText(column, old_text) # 元に戻す text
             return
 
         data_node[new_text] = data_node.pop(old_text)
 
     def find_data_node(self, item):
-        if item is None: # Top-level
+        if item is None: # トップレベル
             return self.config_data.get("YEARS_HIERARCHY", {})
         
         path = []
@@ -5058,7 +5054,7 @@ class MainWindow(QMainWindow):
 
                 if reply == QMessageBox.Yes:
 
-                    # Update the internal config data
+                    # 内部configデータを更新
 
                     for key, value in dialog.generated_data.items():
 
@@ -5066,9 +5062,9 @@ class MainWindow(QMainWindow):
 
                     
 
-                    # Refresh only the relevant UI parts (the subject details tab)
+                    # 関連するUI部分（教科詳細タブ）のみ更新
 
-                    # This avoids resetting the entire UI and losing user context.
+                    # UI全体をリセットして作業状態を失うことを避ける。
 
                     self.update_details_subject_lists()
 
@@ -5082,7 +5078,7 @@ class MainWindow(QMainWindow):
         
 def start_main_app():
 
-    """Entry point for the main config editor application."""
+    """設定エディタ本体のエントリーポイント。"""
     import tempfile
 
     app = QApplication(sys.argv)
@@ -5091,7 +5087,7 @@ def start_main_app():
 
 
 
-    # The main window, MainWindow, is instantiated with default values.
+    # MainWindowは既定値で生成する。
 
     window = MainWindow(splash=None)
 
@@ -5099,7 +5095,7 @@ def start_main_app():
 
     window.show()
 
-    # IPC: Notify launcher that the main window is ready
+    # IPC: メインウィンドウの準備完了をランチャーへ通知
     ipc_ready_file = Path(tempfile.gettempdir()) / "configeditor_ready.tmp"
     try:
         ipc_ready_file.touch()
@@ -5114,5 +5110,3 @@ def start_main_app():
 if __name__ == '__main__':
 
     start_main_app()
-        
-        

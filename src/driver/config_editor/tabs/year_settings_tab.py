@@ -156,7 +156,7 @@ class YearSettingsTab(BaseTab):
         config_dict["HIERARCHY_ANCHORS"] = list(self._anchors)
     
     # =========================================================================
-    # Tree Methods
+    # ツリー操作
     # =========================================================================
     
     def _get_item_path(self, item: QTreeWidgetItem) -> str:

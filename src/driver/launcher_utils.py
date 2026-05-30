@@ -43,7 +43,7 @@ def run_launcher(config: LauncherConfig) -> int:
     """
     app = QApplication(sys.argv)
 
-    # --- Path Resolution ---
+    # --- パス解決 ---
     if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
         base_path = Path(sys._MEIPASS)
         app_dir = Path(sys.executable).parent
@@ -51,14 +51,14 @@ def run_launcher(config: LauncherConfig) -> int:
         base_path = Path(__file__).resolve().parent
         app_dir = base_path
 
-    # --- Constants ---
+    # --- 定数 ---
     main_app_path = app_dir / config.main_app_name
-    # Maximum time to wait for main app (fallback timeout)
+    # メインアプリの起動完了待ち最大時間（フォールバック）
     MAX_WAIT_MS = 30000
-    # Polling interval for IPC file check
+    # IPCファイル確認間隔
     POLL_INTERVAL_MS = 100
 
-    # --- IPC Setup: Delete any existing ready file ---
+    # --- IPC準備: 既存の準備完了ファイルを削除 ---
     ipc_filepath = get_ipc_filepath(config.ipc_ready_filename)
     if ipc_filepath.exists():
         try:
@@ -66,7 +66,7 @@ def run_launcher(config: LauncherConfig) -> int:
         except Exception:
             pass
 
-    # --- Create and show the QSplashScreen ---
+    # --- QSplashScreenの生成と表示 ---
     splash_image_path = base_path / config.splash_image_filename
     splash_pixmap = QPixmap(str(splash_image_path))
     
@@ -75,7 +75,7 @@ def run_launcher(config: LauncherConfig) -> int:
         splash.show()
         app.processEvents()
 
-        # --- Launch the Main Application ---
+        # --- メインアプリケーションの起動 ---
         try:
             print(f"Launching main application: {main_app_path}")
             subprocess.Popen([str(main_app_path)])
@@ -88,7 +88,7 @@ def run_launcher(config: LauncherConfig) -> int:
             )
             QTimer.singleShot(MAX_WAIT_MS, app.quit)
         else:
-            # --- IPC Polling: Wait for main app to signal readiness ---
+            # --- IPCポーリング: メインアプリの準備完了を待つ ---
             elapsed_ms = [0]
             
             def check_ready():
@@ -115,7 +115,7 @@ def run_launcher(config: LauncherConfig) -> int:
         return app.exec()
 
     else:
-        # --- Fallback if splash image is not found ---
+        # --- スプラッシュ画像が見つからない場合のフォールバック ---
         print(f"ERROR: Splash image not found at '{splash_image_path}'. Launching main app directly.")
         try:
             subprocess.Popen([str(main_app_path)])

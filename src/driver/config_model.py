@@ -66,7 +66,7 @@ class ConfigModel(QObject):
         self._file_path: Optional[Path] = None
     
     # =========================================================================
-    # Properties
+    # プロパティ
     # =========================================================================
     
     @property
@@ -92,7 +92,7 @@ class ConfigModel(QObject):
         return copy.deepcopy(self._data)
     
     # =========================================================================
-    # Data Persistence
+    # データ永続化
     # =========================================================================
     
     def load_from_file(self, file_path: str | Path) -> bool:
@@ -185,7 +185,7 @@ class ConfigModel(QObject):
         self.data_changed.emit()
     
     # =========================================================================
-    # Master Subjects
+    # 教科マスタ
     # =========================================================================
     
     def get_master_subjects(self) -> List[str]:
@@ -273,7 +273,7 @@ class ConfigModel(QObject):
         return True
     
     # =========================================================================
-    # Aliases
+    # 別名
     # =========================================================================
     
     def get_aliases(self, subject: str) -> List[str]:
@@ -328,7 +328,7 @@ class ConfigModel(QObject):
         return True
     
     # =========================================================================
-    # Years Hierarchy
+    # 年次階層
     # =========================================================================
     
     def get_years_hierarchy(self) -> Dict:
@@ -354,7 +354,7 @@ class ConfigModel(QObject):
         leaves = []
         for key, children in node.items():
             current_path = f"{path_prefix}/{key}" if path_prefix else key
-            if not children:  # leaf node
+            if not children:  # 葉ノード
                 leaves.append(key)
             else:
                 leaves.extend(self._collect_leaf_years(children, current_path))
@@ -384,7 +384,7 @@ class ConfigModel(QObject):
         self.data_changed.emit()
     
     # =========================================================================
-    # Prerequisites
+    # 前提教科
     # =========================================================================
     
     def get_prerequisites(self) -> Dict[str, List[str]]:
@@ -402,7 +402,7 @@ class ConfigModel(QObject):
         self.data_changed.emit()
     
     # =========================================================================
-    # No Together Subjects
+    # 同時選択不可教科
     # =========================================================================
     
     def get_no_together_groups(self) -> List[List[str]]:
@@ -416,7 +416,7 @@ class ConfigModel(QObject):
         self.data_changed.emit()
     
     # =========================================================================
-    # General Settings
+    # 一般設定
     # =========================================================================
     
     def get_setting(self, key: str, default: Any = None) -> Any:
@@ -440,7 +440,7 @@ class ConfigModel(QObject):
         self.data_changed.emit()
     
     # =========================================================================
-    # Table Layout (year-specific)
+    # 時間割レイアウト（年次別）
     # =========================================================================
     
     def get_table_layout(self, year: str) -> List[List[str]]:
@@ -468,7 +468,7 @@ class ConfigModel(QObject):
         self.data_changed.emit()
     
     # =========================================================================
-    # Subject Details (year-specific)
+    # 教科詳細（年次別）
     # =========================================================================
     
     def get_subject_details(self, year: str) -> Dict[str, Dict]:
@@ -484,7 +484,7 @@ class ConfigModel(QObject):
         self.data_changed.emit()
     
     # =========================================================================
-    # Required Subjects
+    # 必須教科
     # =========================================================================
     
     def get_required_subjects_rules(self) -> Dict[str, Dict]:
@@ -511,7 +511,7 @@ class ConfigModel(QObject):
         return False
     
     # =========================================================================
-    # Private Helper Methods - Remove subject from related settings
+    # 関連設定から教科を削除する内部補助処理
     # =========================================================================
     
     def _remove_subject_from_aliases(self, subject: str):
@@ -555,7 +555,7 @@ class ConfigModel(QObject):
             selected.remove(subject)
     
     # =========================================================================
-    # Private Helper Methods - Rename subject in related settings
+    # 関連設定内の教科名を変更する内部補助処理
     # =========================================================================
     
     def _rename_in_aliases(self, old_name: str, new_name: str):

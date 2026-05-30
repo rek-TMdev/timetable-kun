@@ -140,21 +140,21 @@ class TimetableLogic:
         """
         missing = {}
         
-        # Create a set of all selected subjects, normalized for lookup.
+        # 参照用に、選択済み教科を正規化した集合を作成する。
         all_subjects_raw = set(timetable.values()).union(art_subjects)
         all_subjects_norm = {TimetableLogic.normalize_subject_name(s) for s in all_subjects_raw if s}
 
-        # Iterate through the raw subject names to check their prereqs
+        # 元の教科名を走査して前提教科を確認する
         for subject_raw in all_subjects_raw:
             if not subject_raw: continue
             
-            # Config keys are raw names
+            # configキーは元の教科名を使う
             if subject_raw in prerequisite_config:
                 prereqs_raw = prerequisite_config[subject_raw]
                 missing_reqs = []
                 for prereq_raw in prereqs_raw:
                     if TimetableLogic.normalize_subject_name(prereq_raw) not in all_subjects_norm:
-                        missing_reqs.append(prereq_raw) # append raw name for display
+                        missing_reqs.append(prereq_raw) # 表示用に元の教科名を追加
                 
                 if missing_reqs:
                     missing[subject_raw] = missing_reqs
@@ -206,7 +206,7 @@ class TimetableLogic:
         時間割の組み合わせを生成するジェネレータ。
         params: 必要なすべてのデータを含む辞書
         """
-        # Unpack parameters
+        # パラメータを展開
         selected_subjects = params['selected_subjects']
         fixed_slots = params['fixed_slots']
         all_slots = params['all_slots']
@@ -238,7 +238,7 @@ class TimetableLogic:
                 current_subjects_raw = [norm_to_raw_map.get(s) for s in state.timetable.values() if s]
                 
                 units = TimetableLogic._calculate_units_for_list(
-                    list(state.timetable.values()), # Pass normalized names
+                    list(state.timetable.values()), # 正規化済み教科名を渡す
                     unit_data['abnormal_units_general'],
                     unit_data['all_year_abnormal_units']
                 )

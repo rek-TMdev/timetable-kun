@@ -74,7 +74,7 @@ class ThemeManager:
         self.theme_colors = {}
         self._is_dark = None  # キャッシュ
         
-        # Load initial theme mode from config (Legacy support, now primarily System)
+        # configから初期テーマ設定を読み込む（現在はSystemを優先）
         self._manual_theme_mode = self.config.get("APP_THEME", "System")
         
         self.reload_theme_colors()

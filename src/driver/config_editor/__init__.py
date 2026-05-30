@@ -1,4 +1,4 @@
-# config_editor package
+# config_editorパッケージ
 """
 Config Editor パッケージ
 

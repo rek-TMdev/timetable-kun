@@ -19,7 +19,7 @@ import concurrent.futures
 import openpyxl
 from pathlib import Path
 
-# Logging infrastructure
+# ログ基盤
 try:
     from logging_utils import setup_logger, log_exception
     logger = setup_logger("timetable_checker")
@@ -29,7 +29,7 @@ except ImportError:
     logger.addHandler(logging.NullHandler())
 
 def set_button_styles(app, is_dark=None):
-    """Applies a theme-aware stylesheet for QPushButton and QComboBox."""
+    """テーマに応じたQPushButton/QComboBox用スタイルを適用する。"""
     if is_dark is None:
         is_dark = darkdetect.theme() == "Dark"
 
@@ -107,10 +107,10 @@ class ConfigSelectionDialog(QDialog):
 
         icon_base_name = "時間割くんチェッカーアイコン.ico"
         icon_path_obj = parent.base_path / icon_base_name
-        icon_path = str(icon_path_obj) # Convert to string for QIcon
+        icon_path = str(icon_path_obj) # QIcon用に文字列へ変換
 
-        if icon_path_obj.exists(): # Use pathlib's exists()
-            icon = QIcon(icon_path) # QIcon expects a string path
+        if icon_path_obj.exists(): # pathlibのexists()で存在確認
+            icon = QIcon(icon_path) # QIconには文字列パスを渡す
             if not icon.isNull():
                 self.setWindowIcon(icon)
 
@@ -153,7 +153,7 @@ class DepartmentSelectionDialog(QDialog):
         label = QLabel("選択してください:")
         main_layout.addWidget(label)
 
-        # Use a group box for radio buttons
+        # ラジオボタンをグループ化する
         self.radio_group_box = QGroupBox()
         radio_layout = QVBoxLayout()
         self.radio_button_group = QButtonGroup(self)
@@ -693,13 +693,13 @@ class ThemeManager:
         except Exception:
             pass
 
-        # Global palette override removed to respect OS window style.
-        # Colors are now applied only to specific widgets (e.g. QTextEdit) below.
+        # OSのウィンドウスタイルを尊重するため、全体パレットの上書きは行わない。
+        # 色指定は下記の個別ウィジェット（例: QTextEdit）に限定する。
 
-        # Define base colors for text view styling
+        # テキスト表示用の基本色を定義
         base_color = "#3C3C3C" if self.is_dark_mode else "#FFFFFF"
         text_color = self.theme_colors.text.name()
-        mid_color = "#808080" # Fallback or specific color
+        mid_color = "#808080" # フォールバック用の中間色
         
         text_style = f"""
             QTextEdit {{
@@ -783,15 +783,15 @@ class TimetableChecker(QMainWindow):
         return self._exit_requested
 
     def changeEvent(self, event):
-        """Handle theme changes dynamically."""
+        """テーマ変更を動的に反映する。"""
         if event.type() == QEvent.ThemeChange:
-            # Refresh theme state
+            # テーマ状態を更新
             if hasattr(self, 'theme_manager'):
                 self.theme_manager.is_dark_mode = darkdetect.theme() == "Dark"
                 self.theme_manager.theme_colors = ThemeColors(self.theme_manager.is_dark_mode)
                 self.theme_manager.apply_theme()
             
-            # Update button styles locally
+            # ボタンスタイルを更新
             set_button_styles(QApplication.instance())
             
         super().changeEvent(event)
@@ -801,7 +801,7 @@ class TimetableChecker(QMainWindow):
         self.resize(600, 400)
         self.setAcceptDrops(True)  # ドラッグ＆ドロップを有効化
 
-        # Set Window Icon
+        # ウィンドウアイコンを設定
         icon_path = self.base_path / "時間割くんチェッカーアイコン.ico"
         if icon_path.exists():
             self.setWindowIcon(QIcon(str(icon_path)))
@@ -1277,13 +1277,13 @@ class TimetableChecker(QMainWindow):
         
 
 def start_main_app():
-    """Entry point for the main timetable checker application."""
+    """時間割チェッカー本体のエントリーポイント。"""
     import tempfile
     
     app = QApplication(sys.argv)
     set_button_styles(app)
 
-    # The main window, TimetableChecker, is instantiated with splash=None.
+    # スプラッシュ画面は外部ランチャーが扱うためTimetableCheckerにはNoneを渡す。
     window = TimetableChecker(splash=None)
 
     if hasattr(window, 'is_exit_requested') and window.is_exit_requested():
@@ -1291,7 +1291,7 @@ def start_main_app():
     
     window.show()
     
-    # IPC: Notify launcher that the main window is ready
+    # IPC: メインウィンドウの準備完了をランチャーへ通知
     ipc_ready_file = Path(tempfile.gettempdir()) / "timetablechecker_ready.tmp"
     try:
         ipc_ready_file.touch()
