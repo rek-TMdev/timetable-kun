@@ -7,9 +7,11 @@
 
 サンプルの時間割枠は、日本の高校で一般的な平日5日・1日6限を想定し、
 `月〜金` の5列、`1〜6限` の6行で定義しています。
-区分サンプルは学年ではなく学科を表しており、`普通科` と `情報科` の
-架空データを用意しています。
+区分は `普通科` と `情報科` の下に `2年`、`3年` を持つ2階層です。
+葉キーは `普通科_2年`、`普通科_3年`、`情報科_2年`、`情報科_3年` の
+4種類で、各葉に時間割枠、科目数、保存位置、単位設定を用意しています。
+芸術科目セレクト用の候補として `音楽I`、`美術I`、`書道I` も収録しています。
 
 `YEARS_HIERARCHY` の葉は空のオブジェクトにし、科目や単位数は
-`table_layout*`、`subject_number*`、`subject_slots_base*`、
-`SAVE_POSITION*`、`YEARS_SUBJECTS_UNITS_*` に分けて定義します。
+`table_layout*`、`subject_number*`、`subject_slots_base*`、`SAVE_POSITION*`、
+`ALL_SLOTS*`、`ABNORMAL_SUBJECTS_UNITS*`、`YEARS_SUBJECTS_UNITS_*` に分けて定義します。
