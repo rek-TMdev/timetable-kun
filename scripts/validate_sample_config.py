@@ -97,6 +97,8 @@ def main() -> int:
     expected_hierarchy = {"全日制": {"2年": {}, "3年": {}}}
     if hierarchy != expected_hierarchy:
         raise ValueError(f"公開サンプルの YEARS_HIERARCHY は元データと同じ構造にしてください: {expected_hierarchy}")
+    if config.get("HIERARCHY_ANCHORS") != ["全日制"]:
+        raise ValueError('HIERARCHY_ANCHORS は ["全日制"] にしてください')
 
     leaf_parts = collect_leaf_parts(hierarchy)
     if not leaf_parts:
