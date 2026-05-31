@@ -70,24 +70,16 @@ def require_art_subjects(config: dict[str, Any]) -> None:
         raise ValueError("SELECTED_ART_SUBJECT は ART_SUBJECT 数以上の候補配列にしてください")
     if not all(isinstance(subject, str) and subject for subject in selectable):
         raise ValueError("SELECTED_ART_SUBJECT の各候補は空でない文字列にしてください")
+    expected_selectable = ["書道Ⅰ", "美術Ⅰ", "音楽Ⅰ"]
+    if selectable != expected_selectable:
+        raise ValueError(f"SELECTED_ART_SUBJECT は元データと同じ候補順にしてください: {expected_selectable}")
 
     missing_from_master = sorted(set(selectable) - set(master_subjects))
     if missing_from_master:
         raise ValueError(f"芸術科目候補が MASTER_SUBJECTS にありません: {missing_from_master}")
 
-    profile_selections = config.get("PROFILE_ART_SELECTIONS", {})
-    if profile_selections is None:
-        return
-    if not isinstance(profile_selections, dict):
-        raise TypeError("PROFILE_ART_SELECTIONS はオブジェクトにしてください")
-    for profile, subjects in profile_selections.items():
-        if not isinstance(profile, str) or not profile:
-            raise ValueError("PROFILE_ART_SELECTIONS のキーは空でない文字列にしてください")
-        if not isinstance(subjects, list):
-            raise TypeError(f"PROFILE_ART_SELECTIONS.{profile} は配列にしてください")
-        unknown = sorted(set(subjects) - set(selectable))
-        if unknown:
-            raise ValueError(f"PROFILE_ART_SELECTIONS.{profile} に候補外の芸術科目があります: {unknown}")
+    if "PROFILE_ART_SELECTIONS" in config:
+        raise ValueError("PROFILE_ART_SELECTIONS は元データの基本形にないためサンプルへ入れないでください")
 
 
 def main() -> int:
@@ -99,18 +91,25 @@ def main() -> int:
         raise ValueError("YEARS_HIERARCHY は空でないオブジェクトにしてください")
 
     year_messages = config.get("YEARS_MESSAGE")
-    if not isinstance(year_messages, list) or len(year_messages) < 2:
-        raise ValueError("公開サンプルの YEARS_MESSAGE は学科と学年の2階層を表す配列にしてください")
+    if year_messages != ["課程"]:
+        raise ValueError('公開サンプルの YEARS_MESSAGE は元データと同じ ["課程"] にしてください')
+
+    expected_hierarchy = {"全日制": {"2年": {}, "3年": {}}}
+    if hierarchy != expected_hierarchy:
+        raise ValueError(f"公開サンプルの YEARS_HIERARCHY は元データと同じ構造にしてください: {expected_hierarchy}")
 
     leaf_parts = collect_leaf_parts(hierarchy)
     if not leaf_parts:
         raise ValueError("YEARS_HIERARCHY に葉がありません")
-    if any(len(parts) < 2 for parts in leaf_parts):
-        raise ValueError("公開サンプルの YEARS_HIERARCHY は 学科 -> 学年 の2階層にしてください")
 
     require_art_subjects(config)
-    if not isinstance(config.get("REQUIRED_SUBJECTS_ALL", {}), dict):
-        raise TypeError("REQUIRED_SUBJECTS_ALL はオブジェクトにしてください")
+    if "REQUIRED_SUBJECTS_ALL" in config:
+        raise ValueError("REQUIRED_SUBJECTS_ALL は元データの現行サンプル形に合わせて含めないでください")
+    unit_keys = [key for key in config if key.startswith("YEARS_SUBJECTS_UNITS_")]
+    if unit_keys != ["YEARS_SUBJECTS_UNITS_全日制"]:
+        raise ValueError("YEARS_SUBJECTS_UNITS_* は元データと同じく YEARS_SUBJECTS_UNITS_全日制 のみにしてください")
+    if not isinstance(config.get("SAVE_POSITION全日制"), dict):
+        raise TypeError("SAVE_POSITION全日制 はオブジェクトにしてください")
 
     leaf_paths: list[str] = []
     for parts in leaf_parts:
@@ -121,12 +120,11 @@ def main() -> int:
         number_key = f"subject_number{path}"
         slots_key = f"subject_slots_base{path}"
         save_key = f"SAVE_POSITION{path}"
-        units_key = f"YEARS_SUBJECTS_UNITS_{path}"
         top_units_key = f"YEARS_SUBJECTS_UNITS_{top_level}"
         all_slots_key = f"ALL_SLOTS{path}"
         abnormal_key = f"ABNORMAL_SUBJECTS_UNITS{path}"
-        required_leaf_key = f"REQUIRED_SUBJECTS_{path}"
         required_top_key = f"REQUIRED_SUBJECTS_{top_level}"
+        leaf_units_key = f"YEARS_SUBJECTS_UNITS_{path}"
 
         missing = [
             key
@@ -135,21 +133,23 @@ def main() -> int:
                 number_key,
                 slots_key,
                 save_key,
-                units_key,
                 top_units_key,
                 all_slots_key,
                 abnormal_key,
-                required_leaf_key,
                 required_top_key,
             ]
             if key not in config
         ]
         if missing:
             raise KeyError(f"{path} に対応する設定キーが不足しています: {', '.join(missing)}")
+        if leaf_units_key in config:
+            raise ValueError(f"{leaf_units_key} は元データと違うため入れないでください")
 
         slots = flatten_table_layout(table_key, config[table_key])
         if not slots:
             raise ValueError(f"{table_key} に有効なスロットがありません")
+        if not all(slot[:1].isalpha() and slot[1:].isdigit() for slot in slots):
+            raise ValueError(f"{table_key} のスロット名は A1 形式にしてください")
 
         require_list_of_subject_maps(config, number_key)
         require_list_of_subject_maps(config, slots_key)
@@ -161,8 +161,6 @@ def main() -> int:
         if unknown_save_slots:
             raise ValueError(f"{save_key} に table_layout 未定義のスロットがあります: {sorted(unknown_save_slots)}")
 
-        if not isinstance(config[units_key], int | float):
-            raise TypeError(f"{units_key} は数値にしてください")
         if not isinstance(config[top_units_key], int | float):
             raise TypeError(f"{top_units_key} は数値にしてください")
         if not isinstance(config[all_slots_key], list):
@@ -172,10 +170,11 @@ def main() -> int:
             raise ValueError(f"{all_slots_key} に table_layout のスロットが不足しています: {sorted(missing_all_slots)}")
         if not isinstance(config[abnormal_key], dict):
             raise TypeError(f"{abnormal_key} はオブジェクトにしてください")
-        if not isinstance(config[required_leaf_key], dict):
-            raise TypeError(f"{required_leaf_key} はオブジェクトにしてください")
         if not isinstance(config[required_top_key], dict):
             raise TypeError(f"{required_top_key} はオブジェクトにしてください")
+
+    if not isinstance(config.get("REQUIRED_SUBJECTS_全日制_3年"), dict):
+        raise TypeError("REQUIRED_SUBJECTS_全日制_3年 はオブジェクトにしてください")
 
     print(f"sample_config OK: {', '.join(leaf_paths)}")
     return 0
