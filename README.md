@@ -12,7 +12,7 @@ HTML マニュアルを収録しています。実在校名、実生徒データ
 
 | アプリ | 役割 |
 | --- | --- |
-| 本体 | 設定 JSON を読み込み、学科やコースごとの科目選択から時間割候補を生成・確認します。 |
+| 本体 | 設定 JSON を読み込み、課程やコースなどの階層区分ごとに時間割候補を生成・確認します。 |
 | ドライバ | 科目マスタ、履修条件、枠レイアウト、Excel 保存位置などを編集します。 |
 | チェッカー | 保存済み Excel 時間割を読み込み、単位数、必須科目、前提科目などを検証します。 |
 
@@ -113,10 +113,10 @@ Inno Setup:
 
 ## ダウンロード
 
-GitHub Releases には、架空データのサンプル設定を同梱した Windows 向け
-ZIP を配置しています。
+GitHub Releases から、架空データのサンプル設定を同梱した Windows 向け
+ZIP をダウンロードできます。
 
-- https://github.com/rek-TMdev/timetable-kun/releases/tag/preview-2026-05-31
+- https://github.com/rek-TMdev/timetable-kun/releases
 
 ## 収録していないデータ
 
