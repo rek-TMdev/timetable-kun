@@ -1,8 +1,7 @@
 # Third Party Notices
 
-This repository contains source code for portfolio review. Third-party packages
-and assets keep their original licenses and are not covered by the project
-license in `LICENSE`.
+Third-party packages and assets keep their original licenses and are not covered
+by the project license in `LICENSE`.
 
 ## Python dependencies
 
@@ -14,16 +13,13 @@ The runtime dependencies are listed in `requirements.txt`.
 - pykakasi
 - deep-translator
 
-Before distributing Windows binaries or installers, include the license files and
-notices required by each dependency. In particular, Qt/PySide6 distribution has
-license obligations that should be checked for the selected distribution method.
+Windows binaries and installers that include these dependencies are also subject
+to the license terms and notice requirements of each dependency.
 
 ## Icons
 
-SVG icons under `src/app/svgs/` are Material Symbols-style UI icons. If these
-files are used in a distributed product, keep the upstream icon license notice
-with the distribution.
+SVG icons under `src/app/svgs/` are Material Symbols-style UI icons. Their
+upstream license notices remain applicable.
 
-Application icons under `assets/icons/` are included only so the public
-portfolio repository reflects the application structure. They are not granted
-for reuse outside this project.
+Application icons under `assets/icons/` are included to reflect the application
+structure. They are not granted for reuse outside this project.

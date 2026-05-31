@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>時間割くん 公開HTMLマニュアル</title>
+  <title>時間割くん HTMLマニュアル</title>
   <style>
     :root {
       color-scheme: light;
@@ -264,8 +264,8 @@
 <body>
   <header>
     <div class="hero">
-      <h1>時間割くん 公開HTMLマニュアル</h1>
-      <p class="lead">時間割くんは、履修選択と時間割候補の確認を支援する Windows 向けデスクトップアプリ群です。このページは GitHub 公開用に、本体、ドライバ、チェッカーの基本操作と注意点を一つにまとめたマニュアルです。</p>
+      <h1>時間割くん HTMLマニュアル</h1>
+      <p class="lead">時間割くんは、履修選択と時間割候補の確認を支援する Windows 向けデスクトップアプリ群です。このページでは、本体、ドライバ、チェッカーの基本操作と注意点を一つにまとめています。</p>
     </div>
   </header>
 
@@ -278,7 +278,6 @@
       <a href="#driver">ドライバ</a>
       <a href="#checker">チェッカー</a>
       <a href="#build">ビルド</a>
-      <a href="#release-check">公開前確認</a>
     </div>
   </nav>
 
@@ -290,20 +289,16 @@
       <div class="grid">
         <div class="box">
           <h3>本体</h3>
-          <p>設定ファイルを読み込み、年次やコースごとの科目選択から時間割候補を生成します。検索、枠指定、固定科目、候補保存、Excel 出力を扱います。</p>
+          <p>設定ファイルを読み込み、学科やコースごとの科目選択から時間割候補を生成します。検索、枠指定、固定科目、候補保存、Excel 出力を扱います。</p>
         </div>
         <div class="box">
           <h3>ドライバ</h3>
-          <p>公開用または検証用の設定 JSON を編集します。科目マスタ、別名、履修条件、枠レイアウト、保存位置、一般設定を画面から調整します。</p>
+          <p>設定 JSON を編集します。科目マスタ、別名、履修条件、枠レイアウト、保存位置、一般設定を画面から調整します。</p>
         </div>
         <div class="box">
           <h3>チェッカー</h3>
           <p>保存済みの Excel 時間割を読み込み、単位数、必須科目、前提科目などを検証します。Dry Run、結果コピー、CSV レポートに対応します。</p>
         </div>
-      </div>
-
-      <div class="panel warning">
-        <strong>公開用の前提:</strong> このマニュアルは識別可能な名称、連絡先、端末固有の絶対パス、実データ、配布先固有の設定値を含めない形で記述しています。
       </div>
     </section>
 
@@ -352,18 +347,18 @@ python src\checker\timetable_checker_main.py</code></pre>
 
     <section id="sample-config">
       <h2>サンプル設定の選び方</h2>
-      <p>初回起動には設定 JSON が必要です。公開リポジトリには架空データの最小サンプルとして <code>examples/sample_config.json</code> が置かれています。</p>
+      <p>初回起動には設定 JSON が必要です。<code>examples/sample_config.json</code> には、架空データのみで構成したサンプル設定が入っています。</p>
 
       <ol>
-        <li><code>examples/sample_config.json</code> を構造確認用として開きます。</li>
-        <li>編集用の作業コピーを作成し、ファイル名を用途に合わせて変更します。</li>
-        <li>科目、年次階層、枠レイアウト、保存位置、履修条件を架空または公開許可済みの内容に置き換えます。</li>
+        <li><code>examples/sample_config.json</code> を選択します。</li>
+        <li>必要に応じて編集用の作業コピーを作成します。</li>
+        <li>科目、学科区分、枠レイアウト、保存位置、履修条件を用途に合わせて編集します。</li>
         <li>本体またはチェッカー起動時の設定選択ダイアログで、その JSON を選びます。</li>
         <li>候補が複数ある場合は、表示名と更新日を確認して選択します。</li>
       </ol>
 
       <div class="panel ok">
-        <strong>選択の目安:</strong> 動作確認だけならサンプル由来の架空設定を使います。公開リポジトリに含める設定は、第三者が見ても問題ない内容だけに限定してください。
+        <strong>サンプル内容:</strong> 平日5日・1日6限の枠に、学科区分として <code>普通科</code> と <code>情報科</code> を用意しています。
       </div>
 
       <p>本体とチェッカーは、起動時にアプリ配置先と現在の作業ディレクトリから JSON を探します。候補がない場合は、ファイル選択ダイアログから手動で指定できます。専用形式ファイル <code>.tm.json</code> とアプリ個人設定用の <code>config.json</code> は設定候補から除外されます。</p>
@@ -374,8 +369,8 @@ python src\checker\timetable_checker_main.py</code></pre>
       <h3>基本の流れ</h3>
       <ol>
         <li>本体を起動し、使用する設定 JSON を選択します。</li>
-        <li>年次やコースなどの階層がある場合は、対象範囲を選びます。</li>
-        <li>左側のリストから作業する年次タブを開きます。</li>
+        <li>学科やコースなどの階層がある場合は、対象範囲を選びます。</li>
+        <li>左側のリストから作業する区分タブを開きます。</li>
         <li>科目を選択し、必要に応じて検索欄や「枠で検索」を使って候補を絞ります。</li>
         <li>固定したい枠がある場合は固定設定を使い、候補生成から外したい枠を調整します。</li>
         <li>「組み合わせを絞り込み」で科目数、単位数、固定科目を含めるかなどを確認します。</li>
@@ -384,7 +379,7 @@ python src\checker\timetable_checker_main.py</code></pre>
 
       <h3>主な機能</h3>
       <ul>
-        <li>年次別・階層別の時間割タブを自動作成します。</li>
+        <li>学科別・階層別の時間割タブを自動作成します。</li>
         <li>科目名検索、枠指定検索、候補の絞り込みに対応します。</li>
         <li>前提科目、同時選択不可、必須科目、科目数、単位数の条件を設定に基づいて扱います。</li>
         <li>固定枠や手動追加した科目と候補の競合を視覚的に確認できます。</li>
@@ -397,7 +392,7 @@ python src\checker\timetable_checker_main.py</code></pre>
       <ul class="checklist">
         <li>候補が出ない場合は、同時選択不可、必須科目、単位数の条件が厳しすぎないか確認します。</li>
         <li>Excel 出力先のセル位置は設定 JSON の保存位置設定に依存します。出力前にドライバで確認してください。</li>
-        <li>専用形式ファイルには作業状態が保存されます。公開場所に置く場合は、含まれる内容を確認してください。</li>
+        <li>専用形式ファイルには作業状態が保存されます。</li>
         <li>自動選択された前回設定が意図と違う場合は、「設定ファイルを変更」から選び直します。</li>
       </ul>
     </section>
@@ -424,7 +419,7 @@ python src\checker\timetable_checker_main.py</code></pre>
         <tbody>
           <tr>
             <td>科目詳細</td>
-            <td>年次ごとの単位数、科目番号、枠グループ、特別単位数を設定します。</td>
+            <td>区分ごとの単位数、科目番号、枠グループ、特別単位数を設定します。</td>
           </tr>
           <tr>
             <td>科目マスタ</td>
@@ -455,8 +450,8 @@ python src\checker\timetable_checker_main.py</code></pre>
             <td>Excel 出力時に各枠を書き込むセル位置を設定します。</td>
           </tr>
           <tr>
-            <td>年次設定</td>
-            <td>年次やコースの階層、選択時の区切りを設定します。</td>
+            <td>区分設定</td>
+            <td>学科やコースの階層、選択時の区切りを設定します。</td>
           </tr>
           <tr>
             <td>一般設定</td>
@@ -469,7 +464,7 @@ python src\checker\timetable_checker_main.py</code></pre>
       <p>「設定ファイルを統合」では、基準、手元、外部の差分を比較して、可能な部分を自動統合します。表レイアウトや値が衝突した部分は競合として表示され、どちらを採用するか選べます。</p>
 
       <div class="panel warning">
-        <strong>編集時の注意:</strong> 共有元として使う設定を直接編集すると、利用者全体に影響します。作業前にコピーを作り、変更点を確認してから配布用の設定に反映してください。
+        <strong>編集時の注意:</strong> 共有元として使う設定を直接編集すると、利用者全体に影響します。変更内容を確認しやすいよう、作業コピーを分けて扱います。
       </div>
     </section>
 
@@ -503,8 +498,8 @@ python src\checker\timetable_checker_main.py</code></pre>
     </section>
 
     <section id="build">
-      <h2>ビルドと配布確認</h2>
-      <p>公開リポジトリには、PyInstaller と Inno Setup 用の定義が含まれます。ビルド定義は相対パス化されており、配布物を作る場合はバージョン、発行者表示、出力先、署名、更新方法を環境に合わせて調整します。</p>
+      <h2>ビルド定義</h2>
+      <p>PyInstaller と Inno Setup 用の定義が含まれます。ビルド定義は、リポジトリ内のファイルを相対パスで参照します。</p>
 
       <pre><code>pyinstaller installer\時間割くん.spec
 pyinstaller installer\時間割くんツール.spec</code></pre>
@@ -537,25 +532,10 @@ pyinstaller installer\時間割くんツール.spec</code></pre>
       </table>
     </section>
 
-    <section id="release-check">
-      <h2>公開前確認</h2>
-      <p>GitHub へ公開する前に、次の観点を確認します。</p>
-      <ul class="checklist">
-        <li>公開対象の HTML に画像参照や外部トラッキングが含まれていない。</li>
-        <li>識別可能な名称、連絡先、端末固有の絶対パス、配布先固有の設定値が含まれていない。</li>
-        <li>サンプル設定は架空データのみで構成されている。</li>
-        <li>生成済み実行ファイル、ビルドフォルダ、仮想環境、作業中の Excel がコミット対象に入っていない。</li>
-        <li>チェッカーで検証する Excel は、公開前に内容を確認済みのものだけを使っている。</li>
-      </ul>
-
-      <div class="panel ok">
-        <strong>推奨運用:</strong> 公開リポジトリにはソース、公開用サンプル、ビルド定義、公開用マニュアルだけを置き、確認用ビルドや個別設定は別の配布経路で管理します。
-      </div>
-    </section>
   </main>
 
   <footer>
-    <div class="footer-inner">時間割くん 公開HTMLマニュアル。内容は公開用に匿名化し、画像を使わない単一HTMLとして作成しています。</div>
+    <div class="footer-inner">時間割くん HTMLマニュアル</div>
   </footer>
 </body>
 </html>
