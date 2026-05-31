@@ -3,90 +3,559 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>時間割くん HTMLマニュアル概要</title>
+  <title>時間割くん 公開HTMLマニュアル</title>
   <style>
     :root {
       color-scheme: light;
-      font-family: "Yu Gothic", "Meiryo", sans-serif;
-      background: #f6f8fb;
-      color: #1f2937;
+      --bg: #f4f7fb;
+      --surface: #ffffff;
+      --surface-soft: #eef4f8;
+      --text: #1e2933;
+      --muted: #5d6b7a;
+      --line: #d6e0e8;
+      --accent: #176b87;
+      --accent-strong: #0f4f63;
+      --warn-bg: #fff8e5;
+      --warn-line: #d79a22;
+      --ok-bg: #edf8f1;
+      --ok-line: #2d8c58;
+      font-family: "Yu Gothic", "Meiryo", "Hiragino Kaku Gothic ProN", sans-serif;
+      background: var(--bg);
+      color: var(--text);
     }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      line-height: 1.8;
+      line-height: 1.75;
     }
+
+    a {
+      color: var(--accent-strong);
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .hero,
     main {
-      max-width: 920px;
+      max-width: 1080px;
       margin: 0 auto;
-      padding: 40px 24px 64px;
+      padding: 0 24px;
     }
-    h1, h2 {
+
+    .hero {
+      padding-top: 40px;
+      padding-bottom: 28px;
+    }
+
+    h1,
+    h2,
+    h3 {
       line-height: 1.35;
+      margin: 0;
     }
+
     h1 {
       font-size: 2rem;
-      margin-bottom: 8px;
+      letter-spacing: 0;
     }
+
+    .lead {
+      max-width: 820px;
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    nav {
+      background: var(--accent-strong);
+      color: #ffffff;
+    }
+
+    nav .nav-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 10px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+    }
+
+    nav a {
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 0.95rem;
+      white-space: nowrap;
+    }
+
+    main {
+      padding-top: 30px;
+      padding-bottom: 64px;
+    }
+
+    section {
+      margin-top: 34px;
+    }
+
+    section:first-child {
+      margin-top: 0;
+    }
+
     h2 {
-      border-bottom: 2px solid #2563eb;
-      padding-bottom: 6px;
-      margin-top: 36px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--accent);
+      font-size: 1.45rem;
     }
-    .note {
-      background: #fff;
-      border-left: 4px solid #2563eb;
-      padding: 14px 18px;
-      margin: 20px 0;
+
+    h3 {
+      margin-top: 22px;
+      font-size: 1.08rem;
     }
-    ul {
-      padding-left: 1.4rem;
+
+    p {
+      margin: 12px 0 0;
     }
+
+    ul,
+    ol {
+      margin: 10px 0 0;
+      padding-left: 1.35rem;
+    }
+
+    li + li {
+      margin-top: 4px;
+    }
+
     code {
-      background: #e5e7eb;
       padding: 2px 5px;
       border-radius: 4px;
+      background: #e4edf2;
+      color: #14313d;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 0.95em;
+    }
+
+    pre {
+      margin: 12px 0 0;
+      padding: 14px 16px;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #15242d;
+      color: #eef6f9;
+      line-height: 1.55;
+    }
+
+    pre code {
+      padding: 0;
+      background: transparent;
+      color: inherit;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      background: var(--surface);
+    }
+
+    th,
+    td {
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      background: var(--surface-soft);
+      color: #17313c;
+      font-weight: 700;
+    }
+
+    .panel {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--accent);
+      border-radius: 6px;
+      background: var(--surface);
+    }
+
+    .panel.warning {
+      border-left-color: var(--warn-line);
+      background: var(--warn-bg);
+    }
+
+    .panel.ok {
+      border-left-color: var(--ok-line);
+      background: var(--ok-bg);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .box {
+      min-width: 0;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface);
+    }
+
+    .box h3 {
+      margin-top: 0;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .checklist li {
+      margin-top: 6px;
+    }
+
+    footer {
+      border-top: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--muted);
+    }
+
+    footer .footer-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 18px 24px;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 800px) {
+      .hero,
+      main {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      h1 {
+        font-size: 1.65rem;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      table {
+        display: block;
+        overflow-x: auto;
+      }
     }
   </style>
 </head>
 <body>
-  <main>
-    <h1>時間割くん HTMLマニュアル概要</h1>
-    <p>このページは GitHub 公開用の概要版です。実運用版の生成済み HTML マニュアルには学校固有の説明や連絡先が含まれるため、このリポジトリには同梱していません。</p>
-
-    <div class="note">
-      <strong>公開方針:</strong> 実在校名、実データ、個人情報、運用先固有の設定は含めません。
+  <header>
+    <div class="hero">
+      <h1>時間割くん 公開HTMLマニュアル</h1>
+      <p class="lead">時間割くんは、履修選択と時間割候補の確認を支援する Windows 向けデスクトップアプリ群です。このページは GitHub 公開用に、本体、ドライバ、チェッカーの基本操作と注意点を一つにまとめたマニュアルです。</p>
     </div>
+  </header>
 
-    <h2>本体マニュアル</h2>
-    <ul>
-      <li>履修条件の選択</li>
-      <li>時間割候補の生成</li>
-      <li>手動固定科目の指定</li>
-      <li>競合・重複・前提科目の確認</li>
-      <li>Excel への出力</li>
-    </ul>
+  <nav aria-label="目次">
+    <div class="nav-inner">
+      <a href="#overview">構成</a>
+      <a href="#startup">起動</a>
+      <a href="#sample-config">サンプル設定</a>
+      <a href="#main-app">本体</a>
+      <a href="#driver">ドライバ</a>
+      <a href="#checker">チェッカー</a>
+      <a href="#build">ビルド</a>
+      <a href="#release-check">公開前確認</a>
+    </div>
+  </nav>
 
-    <h2>ドライバマニュアル</h2>
-    <ul>
-      <li>学校別設定ファイルの作成</li>
-      <li>教科マスタ、別名、前提科目、同時履修不可条件の編集</li>
-      <li>3-way マージによる設定競合の解決</li>
-      <li>配布用設定の更新</li>
-    </ul>
+  <main>
+    <section id="overview">
+      <h2>構成</h2>
+      <p>リポジトリには、通常利用者向けの本体アプリ、設定編集用のドライバ、Excel 時間割の検証用チェッカーが含まれます。設定ファイルは JSON、時間割入出力は Excel または専用形式ファイルを使います。</p>
 
-    <h2>チェッカーマニュアル</h2>
-    <ul>
-      <li>設定ファイルの整合性確認</li>
-      <li>保存済み時間割の確認補助</li>
-      <li>移行・配布前のチェック</li>
-    </ul>
+      <div class="grid">
+        <div class="box">
+          <h3>本体</h3>
+          <p>設定ファイルを読み込み、年次やコースごとの科目選択から時間割候補を生成します。検索、枠指定、固定科目、候補保存、Excel 出力を扱います。</p>
+        </div>
+        <div class="box">
+          <h3>ドライバ</h3>
+          <p>公開用または検証用の設定 JSON を編集します。科目マスタ、別名、履修条件、枠レイアウト、保存位置、一般設定を画面から調整します。</p>
+        </div>
+        <div class="box">
+          <h3>チェッカー</h3>
+          <p>保存済みの Excel 時間割を読み込み、単位数、必須科目、前提科目などを検証します。Dry Run、結果コピー、CSV レポートに対応します。</p>
+        </div>
+      </div>
 
-    <h2>インストールと更新</h2>
-    <ul>
-      <li><code>installer/</code> の PyInstaller 定義で実行ファイルを作成</li>
-      <li>Inno Setup 定義で Windows インストーラーを作成</li>
-      <li>実運用環境では配布先、更新手順、署名を別途設定</li>
-    </ul>
+      <div class="panel warning">
+        <strong>公開用の前提:</strong> このマニュアルは識別可能な名称、連絡先、端末固有の絶対パス、実データ、配布先固有の設定値を含めない形で記述しています。
+      </div>
+    </section>
+
+    <section id="startup">
+      <h2>起動方法</h2>
+      <h3>ソースから起動する場合</h3>
+      <p>Windows と PowerShell を前提に、仮想環境を作成して依存関係を入れます。</p>
+      <pre><code>py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt</code></pre>
+
+      <p>各アプリは次のコマンドで起動できます。</p>
+      <pre><code>python src\app\time_manager_main.py
+python src\driver\config_editor_main.py
+python src\checker\timetable_checker_main.py</code></pre>
+
+      <h3>配布版を使う場合</h3>
+      <p>配布版では、利用者向けのランチャーを起動します。ランチャーはスプラッシュ画面を表示し、内部の本体実行ファイルが準備できたら自動で閉じます。</p>
+      <table>
+        <thead>
+          <tr>
+            <th>用途</th>
+            <th>起動するもの</th>
+            <th>主な利用者</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>時間割作成</td>
+            <td>本体アプリのランチャー</td>
+            <td>時間割候補を作成・確認する人</td>
+          </tr>
+          <tr>
+            <td>設定編集</td>
+            <td>ドライバのランチャー</td>
+            <td>設定 JSON を管理する人</td>
+          </tr>
+          <tr>
+            <td>時間割検証</td>
+            <td>チェッカーのランチャー</td>
+            <td>Excel 時間割をまとめて確認する人</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="sample-config">
+      <h2>サンプル設定の選び方</h2>
+      <p>初回起動には設定 JSON が必要です。公開リポジトリには架空データの最小サンプルとして <code>examples/sample_config.json</code> が置かれています。</p>
+
+      <ol>
+        <li><code>examples/sample_config.json</code> を構造確認用として開きます。</li>
+        <li>編集用の作業コピーを作成し、ファイル名を用途に合わせて変更します。</li>
+        <li>科目、年次階層、枠レイアウト、保存位置、履修条件を架空または公開許可済みの内容に置き換えます。</li>
+        <li>本体またはチェッカー起動時の設定選択ダイアログで、その JSON を選びます。</li>
+        <li>候補が複数ある場合は、表示名と更新日を確認して選択します。</li>
+      </ol>
+
+      <div class="panel ok">
+        <strong>選択の目安:</strong> 動作確認だけならサンプル由来の架空設定を使います。公開リポジトリに含める設定は、第三者が見ても問題ない内容だけに限定してください。
+      </div>
+
+      <p>本体とチェッカーは、起動時にアプリ配置先と現在の作業ディレクトリから JSON を探します。候補がない場合は、ファイル選択ダイアログから手動で指定できます。専用形式ファイル <code>.tm.json</code> とアプリ個人設定用の <code>config.json</code> は設定候補から除外されます。</p>
+    </section>
+
+    <section id="main-app">
+      <h2>本体マニュアル</h2>
+      <h3>基本の流れ</h3>
+      <ol>
+        <li>本体を起動し、使用する設定 JSON を選択します。</li>
+        <li>年次やコースなどの階層がある場合は、対象範囲を選びます。</li>
+        <li>左側のリストから作業する年次タブを開きます。</li>
+        <li>科目を選択し、必要に応じて検索欄や「枠で検索」を使って候補を絞ります。</li>
+        <li>固定したい枠がある場合は固定設定を使い、候補生成から外したい枠を調整します。</li>
+        <li>「組み合わせを絞り込み」で科目数、単位数、固定科目を含めるかなどを確認します。</li>
+        <li>「実行」で時間割候補を生成し、内容を確認して保存します。</li>
+      </ol>
+
+      <h3>主な機能</h3>
+      <ul>
+        <li>年次別・階層別の時間割タブを自動作成します。</li>
+        <li>科目名検索、枠指定検索、候補の絞り込みに対応します。</li>
+        <li>前提科目、同時選択不可、必須科目、科目数、単位数の条件を設定に基づいて扱います。</li>
+        <li>固定枠や手動追加した科目と候補の競合を視覚的に確認できます。</li>
+        <li>複数のプロファイルを作成し、候補や固定状態を分けて保存できます。</li>
+        <li>Excel への保存と、専用形式ファイル <code>.tm.json</code> への保存に対応します。</li>
+        <li>保存済み Excel または専用形式ファイルを読み込み、作業を再開できます。</li>
+      </ul>
+
+      <h3>注意事項</h3>
+      <ul class="checklist">
+        <li>候補が出ない場合は、同時選択不可、必須科目、単位数の条件が厳しすぎないか確認します。</li>
+        <li>Excel 出力先のセル位置は設定 JSON の保存位置設定に依存します。出力前にドライバで確認してください。</li>
+        <li>専用形式ファイルには作業状態が保存されます。公開場所に置く場合は、含まれる内容を確認してください。</li>
+        <li>自動選択された前回設定が意図と違う場合は、「設定ファイルを変更」から選び直します。</li>
+      </ul>
+    </section>
+
+    <section id="driver">
+      <h2>ドライバマニュアル</h2>
+      <h3>基本の流れ</h3>
+      <ol>
+        <li>ドライバを起動し、「ファイルを開く」から設定 JSON を選択します。</li>
+        <li>左側のタブで編集対象を切り替えます。</li>
+        <li>科目マスタ、別名、レイアウト、履修条件、保存位置などを編集します。</li>
+        <li>必要に応じて Excel から設定を取り込み、または Excel へ設定を書き出します。</li>
+        <li>保存前に内容を確認し、「上書き保存」または「名前を付けて保存」を実行します。</li>
+      </ol>
+
+      <h3>編集できる主な項目</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>タブ</th>
+            <th>内容</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>科目詳細</td>
+            <td>年次ごとの単位数、科目番号、枠グループ、特別単位数を設定します。</td>
+          </tr>
+          <tr>
+            <td>科目マスタ</td>
+            <td>利用可能な科目名を追加、編集、削除、並べ替えします。</td>
+          </tr>
+          <tr>
+            <td>別名</td>
+            <td>表記ゆれを標準科目へ紐づけます。自動生成機能も利用できます。</td>
+          </tr>
+          <tr>
+            <td>スロットレイアウト</td>
+            <td>時間割表の行列と枠名を設定します。</td>
+          </tr>
+          <tr>
+            <td>必須科目</td>
+            <td>指定範囲で満たすべき科目条件を設定します。</td>
+          </tr>
+          <tr>
+            <td>前提科目</td>
+            <td>ある科目を選ぶために必要な科目を設定します。</td>
+          </tr>
+          <tr>
+            <td>同時選択不可</td>
+            <td>同じグループ内で同時に選べない科目を設定します。</td>
+          </tr>
+          <tr>
+            <td>保存位置</td>
+            <td>Excel 出力時に各枠を書き込むセル位置を設定します。</td>
+          </tr>
+          <tr>
+            <td>年次設定</td>
+            <td>年次やコースの階層、選択時の区切りを設定します。</td>
+          </tr>
+          <tr>
+            <td>一般設定</td>
+            <td>フォント、候補生成数、テーマ、共有設定の参照先などを設定します。</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>統合と競合解決</h3>
+      <p>「設定ファイルを統合」では、基準、手元、外部の差分を比較して、可能な部分を自動統合します。表レイアウトや値が衝突した部分は競合として表示され、どちらを採用するか選べます。</p>
+
+      <div class="panel warning">
+        <strong>編集時の注意:</strong> 共有元として使う設定を直接編集すると、利用者全体に影響します。作業前にコピーを作り、変更点を確認してから配布用の設定に反映してください。
+      </div>
+    </section>
+
+    <section id="checker">
+      <h2>チェッカーマニュアル</h2>
+      <h3>基本の流れ</h3>
+      <ol>
+        <li>チェッカーを起動し、検証に使う設定 JSON を選択します。</li>
+        <li>必要に応じて「学科を選択」から対象範囲を切り替えます。</li>
+        <li>「時間割ファイルを選択」で Excel ファイルを選ぶか、画面へドラッグアンドドロップします。</li>
+        <li>最小単位数を確認し、必要なら値を変更します。</li>
+        <li>検証結果サマリー、詳細、移動予定を確認します。</li>
+        <li>必要に応じて CSV レポートを出力します。</li>
+      </ol>
+
+      <h3>検証内容</h3>
+      <ul>
+        <li>設定されたセル位置から Excel の科目情報を読み取れるか。</li>
+        <li>読み取った科目と固定科目の合計単位数が下限を満たすか。</li>
+        <li>必須科目条件を満たすか。</li>
+        <li>前提科目が不足していないか。</li>
+        <li>読み込みエラーやセル位置の不整合がないか。</li>
+      </ul>
+
+      <h3>Dry Run とファイル移動</h3>
+      <p>チェッカーは初期状態で Dry Run が有効です。この状態では不合格ファイルを移動せず、移動予定と詳細だけを表示します。Dry Run を外すと、不合格ファイルを同じフォルダ内の分類用フォルダへ移動します。</p>
+
+      <div class="panel warning">
+        <strong>安全な使い方:</strong> 最初は Dry Run のまま検証し、詳細を確認してからファイル移動を実行してください。大量の Excel を扱う場合は、事前にバックアップを作成します。
+      </div>
+    </section>
+
+    <section id="build">
+      <h2>ビルドと配布確認</h2>
+      <p>公開リポジトリには、PyInstaller と Inno Setup 用の定義が含まれます。ビルド定義は相対パス化されており、配布物を作る場合はバージョン、発行者表示、出力先、署名、更新方法を環境に合わせて調整します。</p>
+
+      <pre><code>pyinstaller installer\時間割くん.spec
+pyinstaller installer\時間割くんツール.spec</code></pre>
+
+      <table>
+        <thead>
+          <tr>
+            <th>定義</th>
+            <th>内容</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>installer\時間割くん.spec</code></td>
+            <td>本体アプリと本体ランチャーをまとめる PyInstaller 定義です。</td>
+          </tr>
+          <tr>
+            <td><code>installer\時間割くんツール.spec</code></td>
+            <td>ドライバ、チェッカー、それぞれのランチャーをまとめる PyInstaller 定義です。</td>
+          </tr>
+          <tr>
+            <td><code>installer\時間割くん.iss</code></td>
+            <td>本体アプリ用の Inno Setup 定義です。</td>
+          </tr>
+          <tr>
+            <td><code>installer\時間割くんツール.iss</code></td>
+            <td>ドライバとチェッカー用の Inno Setup 定義です。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="release-check">
+      <h2>公開前確認</h2>
+      <p>GitHub へ公開する前に、次の観点を確認します。</p>
+      <ul class="checklist">
+        <li>公開対象の HTML に画像参照や外部トラッキングが含まれていない。</li>
+        <li>識別可能な名称、連絡先、端末固有の絶対パス、配布先固有の設定値が含まれていない。</li>
+        <li>サンプル設定は架空データのみで構成されている。</li>
+        <li>生成済み実行ファイル、ビルドフォルダ、仮想環境、作業中の Excel がコミット対象に入っていない。</li>
+        <li>チェッカーで検証する Excel は、公開前に内容を確認済みのものだけを使っている。</li>
+      </ul>
+
+      <div class="panel ok">
+        <strong>推奨運用:</strong> 公開リポジトリにはソース、公開用サンプル、ビルド定義、公開用マニュアルだけを置き、確認用ビルドや個別設定は別の配布経路で管理します。
+      </div>
+    </section>
   </main>
+
+  <footer>
+    <div class="footer-inner">時間割くん 公開HTMLマニュアル。内容は公開用に匿名化し、画像を使わない単一HTMLとして作成しています。</div>
+  </footer>
 </body>
 </html>
