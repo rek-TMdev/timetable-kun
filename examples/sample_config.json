@@ -1,4 +1,5 @@
 {
+  "SCHOOL_NAME": "サンプル高校",
   "GENERAL_SETTINGS": {
     "SCHOOL_NAME": "サンプル高校",
     "APP_FONT_SIZE": 11,
@@ -29,45 +30,248 @@
       "音楽基礎"
     ]
   ],
-  "YEARS_MESSAGE": [
-    "学年を選択してください",
-    "系列を選択してください"
-  ],
+  "YEARS_MESSAGE": [],
   "YEARS_HIERARCHY": {
-    "1年": {
-      "共通": [
-        "国語演習",
-        "数学探究",
-        "英語表現",
-        "情報演習"
+    "1年": {},
+    "2年": {}
+  },
+  "YEARS_SUBJECTS_UNITS_1年": 0,
+  "YEARS_SUBJECTS_UNITS_2年": 0,
+  "table_layout1年": [
+    [
+      "月1",
+      "月2"
+    ],
+    [
+      "火1",
+      "火2"
+    ]
+  ],
+  "subject_number1年": [
+    {
+      "name": "国語演習",
+      "data": {
+        "月1": 1,
+        "火1": 1
+      }
+    },
+    {
+      "name": "数学探究",
+      "data": {
+        "月2": 2,
+        "火2": 2
+      }
+    },
+    {
+      "name": "英語表現",
+      "data": {
+        "月1": 3,
+        "火1": 3
+      }
+    },
+    {
+      "name": "情報演習",
+      "data": {
+        "月2": 4,
+        "火2": 4
+      }
+    }
+  ],
+  "subject_slots_base1年": [
+    {
+      "name": "国語演習",
+      "data": [
+        [
+          "月1"
+        ],
+        [
+          "火1"
+        ]
       ]
     },
-    "2年": {
-      "文理共通": [
-        "国語演習",
-        "英語表現",
-        "美術基礎",
-        "音楽基礎"
+    {
+      "name": "数学探究",
+      "data": [
+        [
+          "月2"
+        ],
+        [
+          "火2"
+        ]
+      ]
+    },
+    {
+      "name": "英語表現",
+      "data": [
+        [
+          "月1"
+        ],
+        [
+          "火1"
+        ]
+      ]
+    },
+    {
+      "name": "情報演習",
+      "data": [
+        [
+          "月2"
+        ],
+        [
+          "火2"
+        ]
       ]
     }
+  ],
+  "SAVE_POSITION1年": {
+    "月1": [
+      [
+        "B2"
+      ]
+    ],
+    "月2": [
+      [
+        "C2"
+      ]
+    ],
+    "火1": [
+      [
+        "B3"
+      ]
+    ],
+    "火2": [
+      [
+        "C3"
+      ]
+    ]
   },
+  "FIXED_SLOTS1年": {},
+  "table_layout2年": [
+    [
+      "月1",
+      "月2"
+    ],
+    [
+      "火1",
+      "火2"
+    ]
+  ],
+  "subject_number2年": [
+    {
+      "name": "国語演習",
+      "data": {
+        "月1": 1,
+        "火1": 1
+      }
+    },
+    {
+      "name": "英語表現",
+      "data": {
+        "月2": 2,
+        "火2": 2
+      }
+    },
+    {
+      "name": "美術基礎",
+      "data": {
+        "月1": 3,
+        "火1": 3
+      }
+    },
+    {
+      "name": "音楽基礎",
+      "data": {
+        "月2": 4,
+        "火2": 4
+      }
+    }
+  ],
+  "subject_slots_base2年": [
+    {
+      "name": "国語演習",
+      "data": [
+        [
+          "月1"
+        ],
+        [
+          "火1"
+        ]
+      ]
+    },
+    {
+      "name": "英語表現",
+      "data": [
+        [
+          "月2"
+        ],
+        [
+          "火2"
+        ]
+      ]
+    },
+    {
+      "name": "美術基礎",
+      "data": [
+        [
+          "月1"
+        ],
+        [
+          "火1"
+        ]
+      ]
+    },
+    {
+      "name": "音楽基礎",
+      "data": [
+        [
+          "月2"
+        ],
+        [
+          "火2"
+        ]
+      ]
+    }
+  ],
+  "SAVE_POSITION2年": {
+    "月1": [
+      [
+        "B5"
+      ]
+    ],
+    "月2": [
+      [
+        "C5"
+      ]
+    ],
+    "火1": [
+      [
+        "B6"
+      ]
+    ],
+    "火2": [
+      [
+        "C6"
+      ]
+    ]
+  },
+  "FIXED_SLOTS2年": {},
   "SUBJECT_COMBINATION_COUNT": 20,
   "MORE_SUBJECT_COMBINATION": 10,
-  "MIN_SUBJECT_COUNT": 2,
+  "MIN_SUBJECT_COUNT": 1,
   "MAX_SUBJECT_COUNT": 10,
-  "MIN_SUBJECT_COUNT_UNITS": 9,
+  "MIN_SUBJECT_COUNT_UNITS": 0,
   "MAX_SUBJECT_COUNT_UNITS": 30,
-  "ACTIVE_MIN_SUBJECT": true,
+  "ACTIVE_MIN_SUBJECT": false,
   "ACTIVE_MAX_SUBJECT": false,
-  "ACTIVE_FILTER_SUBJECT": true,
+  "ACTIVE_FILTER_SUBJECT": false,
   "ACTIVE_FILTER_SUBJECT_AMOUNT": false,
-  "ACTIVE_MIN_SUBJECT_UNITS": true,
+  "ACTIVE_MIN_SUBJECT_UNITS": false,
   "ACTIVE_MAX_SUBJECT_UNITS": false,
   "ACTIVE_FILTER_SUBJECT_UNITS": false,
   "INCLUDE_FIXED": false,
   "TIMETABLE_ORDER": true,
-  "TUTORIAL": true,
-  "RUN_TUTORIAL_ON_STARTUP": true,
+  "TUTORIAL": false,
+  "RUN_TUTORIAL_ON_STARTUP": false,
   "MAX_MEMORY_LIMIT": 1000,
-  "LAST_UPDATE_DAY": "2026-05-30"
+  "LAST_UPDATE_DAY": "2026-05-31"
 }

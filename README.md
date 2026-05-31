@@ -58,7 +58,7 @@ python src\driver\config_editor_main.py
 python src\checker\timetable_checker_main.py
 ```
 
-実運用設定は含めていないため、初回起動時は `examples/sample_config.json` を参考に、架空または許可済みの設定ファイルを用意してください。
+実運用設定は含めていないため、初回起動時は `examples/sample_config.json` を読み込み確認用として使用するか、同じ構造で架空または許可済みの設定ファイルを用意してください。
 
 ## ビルド
 
