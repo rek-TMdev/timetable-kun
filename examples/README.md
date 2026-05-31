@@ -4,6 +4,9 @@
 
 - `sample_config.json`: 本体・チェッカーで読み込める公開確認用サンプル
 
+サンプルの時間割枠は、日本の高校で一般的な平日5日・1日6限を想定し、
+`月〜金` の5列、`1〜6限` の6行で定義しています。
+
 `YEARS_HIERARCHY` の葉は空のオブジェクトにし、科目や単位数は
 `table_layout*`、`subject_number*`、`subject_slots_base*`、
 `SAVE_POSITION*`、`YEARS_SUBJECTS_UNITS_*` に分けて定義します。

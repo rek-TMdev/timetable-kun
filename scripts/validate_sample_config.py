@@ -24,13 +24,17 @@ def collect_leaf_paths(node: Any, parts: list[str] | None = None) -> list[str]:
     return paths
 
 
-def flatten_table_layout(table_layout: Any) -> set[str]:
+def flatten_table_layout(table_key: str, table_layout: Any) -> set[str]:
     if not isinstance(table_layout, list):
         raise TypeError("table_layout* は二次元配列にしてください")
+    if len(table_layout) != 6:
+        raise ValueError(f"{table_key} は6行にしてください")
     slots: set[str] = set()
-    for row in table_layout:
+    for row_index, row in enumerate(table_layout, start=1):
         if not isinstance(row, list):
             raise TypeError("table_layout* の各行は配列にしてください")
+        if len(row) != 5:
+            raise ValueError(f"{table_key} の{row_index}行目は5列にしてください")
         for slot in row:
             if slot:
                 if not isinstance(slot, str):
@@ -75,7 +79,7 @@ def main() -> int:
         if missing:
             raise KeyError(f"{path} に対応する設定キーが不足しています: {', '.join(missing)}")
 
-        slots = flatten_table_layout(config[table_key])
+        slots = flatten_table_layout(table_key, config[table_key])
         if not slots:
             raise ValueError(f"{table_key} に有効なスロットがありません")
 
